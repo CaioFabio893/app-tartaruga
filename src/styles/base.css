@@ -1,0 +1,63 @@
+/* Tokens e estilos base. Fonte dos tokens: docs/design/DESIGN_SYSTEM.md */
+:root {
+  --mar-900: #0B3C49;
+  --mar-700: #0E5A6B;
+  --mar-100: #DCEFF2;
+  --areia-50: #FBF7EF;
+  --areia-100: #F4EBDD;
+  --areia-300: #D9C7A6;
+  --tinta: #12313A;
+  --tinta-2: #4A5F66;
+  --acao: #B33F0B;
+  --ok: #1F6B3A;
+  --aviso: #8A5A00;
+  --erro: #A32020;
+  --info: #0E5A6B;
+
+  --fonte: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --r: 12px;
+  --e1: 4px;
+  --e2: 8px;
+  --e3: 16px;
+  --e4: 24px;
+  --toque: 44px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font: 16px/1.5 var(--fonte);
+  background: var(--areia-50);
+  color: var(--tinta);
+}
+
+h1 {
+  font-size: 1.5rem;
+  margin: 0 0 var(--e3);
+}
+
+h2 {
+  font-size: 1.2rem;
+  margin: var(--e3) 0 var(--e2);
+}
+
+small,
+.ajuda {
+  font-size: 0.875rem;
+  color: var(--tinta-2);
+}
+
+:focus-visible {
+  outline: 3px solid #000;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 5px #fff;
+}
+
+#root {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}

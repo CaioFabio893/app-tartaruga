@@ -1,0 +1,35 @@
+:root{--mar-900:#0B3C49;--mar-700:#0E5A6B;--mar-100:#DCEFF2;--areia-50:#FBF7EF;--areia-100:#F4EBDD;--areia-300:#D9C7A6;--tinta:#12313A;--tinta-2:#4A5F66;--acao:#B33F0B;--ok:#1F6B3A;--aviso:#8A5A00;--erro:#A32020;--info:#0E5A6B;
+--fonte:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--r:12px;--e1:4px;--e2:8px;--e3:16px;--e4:24px;--toque:44px}
+*{box-sizing:border-box}body{margin:0;font:16px/1.5 var(--fonte);background:var(--areia-50);color:var(--tinta)}
+h1{font-size:1.5rem;margin:0 0 var(--e3)}h2{font-size:1.2rem;margin:var(--e3) 0 var(--e2)}small,.ajuda{font-size:.875rem;color:var(--tinta-2)}
+:focus-visible{outline:3px solid #000;outline-offset:2px;box-shadow:0 0 0 5px #fff}
+.icone{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--mar-900);z-index:5}
+nav a{flex:1;min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-decoration:none;font-size:.75rem;gap:2px}
+nav a[aria-current=page]{background:var(--mar-700);box-shadow:inset 0 3px #fff;font-weight:700}
+main{padding:var(--e3) var(--e3) 88px;max-width:1000px;margin:auto}
+.aviso-proto{background:#FFF3C4;border:1px solid #8A5A00;padding:var(--e2) var(--e3);font-size:.875rem}
+.cartao{background:#fff;border:1px solid var(--areia-300);border-radius:var(--r);padding:var(--e3);margin-bottom:var(--e3)}
+a.cartao{display:block;color:inherit;text-decoration:none}
+.btn{min-height:var(--toque);min-width:var(--toque);padding:0 var(--e3);border-radius:var(--r);border:2px solid var(--mar-700);background:#fff;color:var(--mar-900);font:600 1rem var(--fonte);cursor:pointer;display:inline-flex;align-items:center;gap:var(--e2)}
+.btn.prim{background:var(--acao);border-color:var(--acao);color:#fff}
+label{display:block;font-weight:600;margin:var(--e3) 0 var(--e1)}
+input,select,textarea{width:100%;min-height:var(--toque);padding:var(--e2) 12px;border:2px solid var(--tinta-2);border-radius:8px;font:1rem var(--fonte);background:#fff;color:var(--tinta)}
+.grade{display:grid;gap:0 var(--e3);grid-template-columns:1fr}
+.abas{display:flex;gap:var(--e1);overflow-x:auto;margin-bottom:var(--e3)}
+.abas button{min-height:var(--toque);padding:0 14px;border:2px solid var(--mar-700);background:#fff;border-radius:999px;font:600 .9rem var(--fonte);white-space:nowrap;cursor:pointer;color:var(--mar-900)}
+.abas button[aria-selected=true]{background:var(--mar-900);color:#fff}
+.selo{display:inline-flex;gap:4px;padding:2px 10px;border-radius:999px;border:2px solid;font-size:.8rem;font-weight:700;background:#fff}
+.selo.ok{color:var(--ok)}.selo.aviso{color:var(--aviso)}.selo.erro{color:var(--erro)}.selo.info{color:var(--info)}
+.msg{border-left:6px solid;padding:var(--e2) var(--e3);margin:var(--e2) 0;background:#fff;border-radius:8px}
+.msg.ok{border-color:var(--ok)}.msg.aviso{border-color:var(--aviso)}.msg.erro{border-color:var(--erro)}.msg.info{border-color:var(--info)}
+table{width:100%;border-collapse:collapse;font-size:.9rem}th,td{padding:var(--e2);border-bottom:1px solid var(--areia-300);text-align:left}th{background:var(--areia-100)}
+.tabela-rolagem{overflow-x:auto}
+.a4{background:#fff;border:1px solid #888;padding:24px;aspect-ratio:210/297;max-width:420px;font-size:.7rem;box-shadow:0 2px 8px #0003;margin:auto}
+.a4 h3{font-size:.95rem;margin:0}.a4 hr{border:0;border-top:1px solid #000}
+.linha{border-left:3px solid var(--mar-700);padding-left:var(--e3);margin-bottom:var(--e3)}
+.esq{display:none}.mapa{background:var(--mar-100);border-radius:var(--r);width:100%}
+.sk{height:16px;background:linear-gradient(90deg,#e6dcc8,#f4ebdd,#e6dcc8);border-radius:6px;margin:8px 0}
+@media(min-width:900px){nav{top:0;bottom:auto;right:auto;width:220px;flex-direction:column;padding-top:var(--e4)}nav a{flex:none;flex-direction:row;justify-content:flex-start;padding:0 var(--e3);gap:12px;font-size:1rem;min-height:var(--toque)}
+main{margin-left:240px;padding-bottom:var(--e4);max-width:none}.grade{grid-template-columns:1fr 1fr}.duas{display:grid;grid-template-columns:1fr 1fr;gap:var(--e3)}}
+@media(prefers-reduced-motion:no-preference){.sk{animation:p 1.4s infinite}@keyframes p{50%{opacity:.5}}}
