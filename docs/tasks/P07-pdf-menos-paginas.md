@@ -19,7 +19,7 @@ Validação real:
 - Após `firebase emulators:start --only auth,firestore --project demo-tartarugas` indicar pronto, `npx vitest run --maxWorkers=2`: **202 passaram/1 prova de produção opt-in ignorada**, 22 arquivos. Menor concorrência separada do build; emulador/fake-indexeddb, sem escrita real.
 - `npx tsc --noEmit`, `npx vite build`, verificação Python e `git diff --check`: passaram.
 
-`firebase deploy --only hosting --project monitoramento-de-tartarugas --account SUA_CONTA_AUTORIZADA --non-interactive`: passou com a conta autorizada da sessão. HTTP 200 e referência ao bundle atual confirmados. Regras/fichas reais preservadas. Entrega Git em origin/master; confirmar SHA remoto antes da resposta final.
+`firebase deploy --only hosting --project monitoramento-de-tartarugas --account SUA_CONTA_AUTORIZADA --non-interactive`: passou com a conta autorizada da sessão. HTTP 200 e referência ao bundle atual confirmados. Regras/fichas reais preservadas. `git push origin master` passou; HEAD e SHA remoto coincidiram em `f0ffab1` antes deste registro documental.
 
 ## Limitações e próximo passo
 
