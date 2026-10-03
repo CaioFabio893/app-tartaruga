@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-03 — P07 PDF completo em menos páginas
+
+- Campos curtos em pares, textos longos com largura inteira, margens/espaçamentos menores e paginação por espaço disponível. Um único relatório completo; nenhuma regra/dado/JSON/CSV alterado.
+- Mesma amostra fictícia: 19 → 11 páginas (≈42% menos). 728 rótulos/valores presentes, sem caracteres fora das margens; 11 páginas renderizadas e conferidas.
+- 202 testes passaram/1 opt-in ignorado após emulador pronto, tipos/build passaram. Hosting publicado e bundle atual HTTP 200. Falha inicial ambiental e reprodução em tasks/P07-pdf-menos-paginas.md.
+
 ## 2026-10-03 — P06 segurança/README/GitHub
 
 - Revisão documentada, neutralização de fórmula CSV em listas sem alterar JSON/números; escape do ID externo no protótipo. Headers Hosting reforçados, publicados e confirmados por HTTP.

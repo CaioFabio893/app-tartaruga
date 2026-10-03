@@ -73,11 +73,12 @@ valor, para o total não parecer completo quando não é. Se nenhum valor foi ob
 ## 5. Layout A4 proposto
 
 - Página 1: identificação do projeto, período, critério, resumo, tabela resumida, avisos de incompletude.
-- Páginas seguintes: fichas detalhadas, cada ficha inicia página própria, com continuação quando necessário, com quebra de página antes do título.
+- Fichas detalhadas: campos curtos em pares e textos longos com largura inteira; nova ficha pode aproveitar a página quando houver espaço para seu início. Continuação mantém identificação, sem cortar campos/históricos.
 - Rodapé em todas as páginas: `Página X de Y`, período e data de geração.
 - Fontes padrão locais Helvetica/HelveticaBold, sem fonte remota; acentos pt-BR e travessão verificados. Glifo não suportado vira `?` com aviso explícito; JSON conserva texto original.
 - Identificação da ficha repetida nas páginas de continuação.
 - Observações longas: quebrar o texto, sem cortar e sem transbordar a margem.
+- P07: margens laterais de 32 pt, valores em 9 pt, espaçamento vertical reduzido e conteúdo integral. Um único PDF completo; não há versão resumida alternativa. Quantidade de páginas depende dos registros/textos; comparação fictícia antes/depois na tarefa P07.
 - Valores vazios impressos como `—`, **nunca** `0`.
 - Tabela resumida não é espremida: se as colunas não caberem, dividir em duas tabelas ou reduzir para as
   colunas essenciais, mantendo a lista completa na página de detalhe.
@@ -109,3 +110,5 @@ valor, para o total não parecer completo quando não é. Se nenhum valor foi ob
 ## 8. Entrega e evidência
 
 P03 fornece fonte real confirmada conforme STATUS/TESTING. P04 organiza resumo de todos os ninhos incluídos e tabelas por ficha, com todos os campos do manual (sem FOTOGRAFIA), motivos e códigos legíveis; sem serialização JSON ou UID como nome. Autoria técnica preservada no JSON; nome usa displayName da sessão quando conhecido, sem inventar identidade. Amostra P04 fictícia em output/pdf/relatorio-p04-demonstracao.pdf.
+
+P07 reorganiza apenas layout e paginação, preservando fontes e regras. Amostra nova `output/pdf/relatorio-p07-demonstracao.pdf`: cinco ninhos fictícios com observação longa, 19 → 11 páginas; 728 rótulos/valores conferidos por extração, sem ausência ou caracteres fora das margens. Conferência visual e resultados em [P07](tasks/P07-pdf-menos-paginas.md).
