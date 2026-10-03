@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "PWA de monitoramento de ninhos de tartarugas -areas de reproducao",
+  "description": "Monitoramento de ninhos de tartarugas em areas de reproducao. Interface web instalavel em construcao; PWA completa ainda nao entregue (docs/ARCHITECTURE.md).",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
@@ -15,15 +15,20 @@
   "dependencies": {
     "firebase": "^12.19.0",
     "leaflet": "^1.9.4",
-    "pdf-lib": "^1.17.1"
+    "pdf-lib": "^1.17.1",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
   },
   "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.2",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
-    "react": "^19.3.0",
-    "react-dom": "^19.3.0",
+    "fake-indexeddb": "^6.2.5",
     "typescript": "^7.0.2",
     "vite": "^8.3.2",
     "vitest": "^5.0.3"
+  },
+  "overrides": {
+    "@grpc/grpc-js": "1.13.6"
   }
 }

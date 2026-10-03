@@ -4,8 +4,8 @@
  *
  * O manual diz: DATA_OCORR recebe "sempre a data da noite em questao, desconsiderando-se a mudanca de data
  * real a partir da 0:00h. A mudanca de data somente sera efetuada apos as 12:00h" (p. 1). DATA_ECLOS
- * reforça: "filhotes emergidos ate as 12:00h consideram-se com a data de eclosao na noite anterior" (p. 3).
- * DATA_ABERT segue o mesmo padrao (p. 4).
+ * reforça: "filhotes emergidos ate as 12:00h consideram-se com a data de eclosao na noite anterior" (p. 4).
+ * DATA_ABERT segue o mesmo padrao (p. 5).
  *
  * Nenhum calculo aqui usa UTC nem Date nativo para decidir a data de campo.
  */
@@ -22,7 +22,7 @@ const DIA_MS = 86_400_000
 function paraDataCampo(ano: number, mes: number, dia: number): string {
   const m = String(mes).padStart(2, '0')
   const d = String(dia).padStart(2, '0')
-  return `${ano}-${m}-${d}`
+  return `${String(ano).padStart(4, '0')}-${m}-${d}`
 }
 
 /**
@@ -36,19 +36,27 @@ export function paraDia(data: string | null | undefined): number | null {
   const ano = Number(m[1])
   const mes = Number(m[2])
   const dia = Number(m[3])
-  if (mes < 1 || mes > 12 || dia < 1 || dia > 31) return null
-  return Math.floor(Date.UTC(ano, mes - 1, dia) / DIA_MS)
+  if (ano < 1 || mes < 1 || mes > 12 || dia < 1 || dia > 31) return null
+  const civil = new Date(0)
+  civil.setUTCFullYear(ano, mes - 1, dia)
+  civil.setUTCHours(0, 0, 0, 0)
+  if (civil.getUTCFullYear() !== ano || civil.getUTCMonth() !== mes - 1 || civil.getUTCDate() !== dia) {
+    return null
+  }
+  return Math.floor(civil.getTime() / DIA_MS)
 }
 
 /** Inverso de `paraDia`. Retorna null para dia fora da faixa representavel. */
 export function deParaDia(dia: number): string | null {
-  if (!Number.isFinite(dia)) return null
+  if (!Number.isSafeInteger(dia)) return null
   const d = new Date(dia * DIA_MS)
+  if (!Number.isFinite(d.getTime()) || d.getUTCFullYear() < 1 || d.getUTCFullYear() > 9999) return null
   return paraDataCampo(d.getUTCFullYear(), d.getUTCMonth() + 1, d.getUTCDate())
 }
 
 /** Soma dias a uma data de campo, sem fuso. */
 export function somarDias(data: string, dias: number): string {
+  if (!Number.isSafeInteger(dias)) throw new Error('quantidade de dias invalida')
   const base = paraDia(data)
   if (base === null) throw new Error(`data invalida: ${data}`)
   const novo = deParaDia(base + dias)
@@ -99,7 +107,8 @@ export interface PartesDataHora {
 
 /**
  * Extrai as partes de um instante ISO 8601 **com offset**, usando apenas os numeros do texto.
- * Evita Date para nao introduzir fuso do ambiente.
+ * Evita o fuso do ambiente. O chamador deve fornecer a representacao local do projeto;
+ * esta funcao nao converte um instante UTC para o fuso do projeto.
  */
 export function partesInstante(instante: string | null): PartesDataHora | null {
   if (typeof instante !== 'string') return null
@@ -108,13 +117,18 @@ export function partesInstante(instante: string | null): PartesDataHora | null {
   )
   if (!m) return null
   const [, ano, mes, dia, horas, minutos, segundos, offset] = m
-  if (!ano || !mes || !dia || !horas || !minutos || !segundos || !offset) return null
+  if (!ano || !mes || !dia || !horas || !minutos || !offset) return null
+  const h = Number(horas)
+  const min = Number(minutos)
+  const seg = Number(segundos ?? '0')
+  if (paraDia(`${ano}-${mes}-${dia}`) === null || h > 23 || min > 59 || seg > 59) return null
 
   let offsetMinutos = 0
   if (offset !== 'Z') {
     const sinal = offset.startsWith('-') ? -1 : 1
     const oh = Number(offset.slice(1, 3))
     const om = Number(offset.slice(4, 6))
+    if (oh > 14 || om > 59 || (oh === 14 && om !== 0)) return null
     offsetMinutos = sinal * (oh * 60 + om)
   }
 
@@ -122,9 +136,9 @@ export function partesInstante(instante: string | null): PartesDataHora | null {
     ano: Number(ano),
     mes: Number(mes),
     dia: Number(dia),
-    horas: Number(horas),
-    minutos: Number(minutos),
-    segundos: Number(segundos),
+    horas: h,
+    minutos: min,
+    segundos: seg,
     offsetMinutos,
   }
 }
@@ -153,25 +167,26 @@ export function dataReferenciaNoite(instante: string | null): string | null {
 
 /**
  * Sugere TEMP_TRANSF a partir do horario do ninho enterrado, quando o horario da postura nao e
- * conhecido (p. 3): ate as 09:00 da manha => 'B'; depois das 09:00 => 'C'.
+ * conhecido (p. 4): ate as 09:00 da manha => 'B'; depois das 09:00 => 'C'.
  *
  * Devolve apenas sugestao: o usuario confirma (DOMAIN_RULES.md 4.8).
  */
 export function sugerirTempoTransferencia(instanteEscavacao: string | null): 'B' | 'C' | null {
   const p = partesInstante(instanteEscavacao)
   if (!p) return null
-  return p.horas < 9 ? 'B' : 'C'
+  return p.horas * 3600 + p.minutos * 60 + p.segundos <= 9 * 3600 ? 'B' : 'C'
 }
 
 /**
  * DATA_ABERT normalmente ocorre no dia posterior a eclosao, pela manha (ate 09:00) ou a tarde
- * (apos 16:00) (p. 4). Retorna 'ok' | 'invalida' | 'sem_eclosao'.
+ * (apos 16:00) (p. 5). Retorna 'ok' | 'invalida' | 'sem_eclosao'.
  */
 export function validarDataAbertura(
   dataEclosao: string | null,
   dataAbertura: string | null,
 ): 'ok' | 'invalida' | 'sem_eclosao' {
   if (!dataAbertura) return 'sem_eclosao'
+  if (paraDia(dataAbertura) === null) return 'invalida'
   if (!dataEclosao) return 'ok'
   const cmp = compararDatas(dataAbertura, dataEclosao)
   if (cmp === null) return 'invalida'

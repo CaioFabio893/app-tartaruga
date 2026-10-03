@@ -1,4 +1,6 @@
-# Deploy
+# Deploy (procedimento futuro; não executar nesta entrega)
+
+Integração oficial E05–E10 e validação científica ainda pendentes. Nenhuma publicação efetuada; firebase.json atual configura emuladores, não Hosting. Este roteiro é preparação e exige autorização de publicação.
 
 Pré-requisitos: projeto Firebase criado, Auth (e-mail/senha) habilitado, Firestore criado (modo produção),
 Hosting configurado. **Não ativar Blaze**.
@@ -32,7 +34,7 @@ firebase init hosting  # apontar para dist/ (single-page app)
 
 ## 4. Regras e índices
 
-Após criar `firestore.rules` e `firestore.indexes.json` (tarefas E04/E11):
+Regras/índices base já existem; após completar/validar a integração oficial e obter autorização:
 
 ```powershell
 firebase deploy --only firestore:rules,firestore:indexes
@@ -48,7 +50,8 @@ firebase deploy --only hosting
    - `uid`, `nome`, `email`
    - `papel: 'coordenacao'`
    - `ativo: true`
-   - `criado_em`, `criado_por` (quem realizou a ação administrativa)
+   - `projeto_id`, `criado_em`, `criado_por` (quem realizou a ação administrativa)
+   - `atualizado_em`, `atualizado_por`, `versao: 1`
 
 O app cliente **não** cria esse registro com papel `coordenacao`. Isso evita autoelevação.
 
@@ -56,7 +59,7 @@ O app cliente **não** cria esse registro com papel `coordenacao`. Isso evita au
 
 1. Acessar URL do Hosting.
 2. Login com primeiro usuário.
-3. Criar projeto/temporada/praias.
+3. Confirmar projeto/temporada/praias provisionados administrativamente (CRUD cliente ainda não entregue).
 4. Testar fluxo CD → ninho → transferência → visita → abertura → relatório.
 5. Verificar regras no emulador (negado por padrão, isolamento por projeto).
 6. Gerar PDF offline → deve aparecer "parcial".

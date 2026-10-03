@@ -1,0 +1,49 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function membro(projeto) {
+      return get(/databases/$(database)/documents/projetos/$(projeto)/membros/$(request.auth.uid)).data;
+    }
+    function autorizado(projeto) {
+      return request.auth != null && membro(projeto).ativo == true
+        && membro(projeto).uid == request.auth.uid && membro(projeto).projeto_id == projeto
+        && membro(projeto).papel in ['consulta', 'campo', 'coordenacao'];
+    }
+    function coordenacao(projeto) { return autorizado(projeto) && membro(projeto).papel == 'coordenacao'; }
+    function membroValido(projeto, uid) {
+      let d = request.resource.data;
+      return d.keys().hasAll(['uid','projeto_id','nome','email','papel','ativo','criado_em','criado_por','atualizado_em','atualizado_por','versao'])
+        && d.keys().hasOnly(['uid','projeto_id','nome','email','papel','ativo','criado_em','criado_por','atualizado_em','atualizado_por','versao'])
+        && d.uid == uid && d.projeto_id == projeto && d.nome is string && d.email is string
+        && d.papel in ['consulta','campo'] && d.ativo is bool && d.versao is int
+        && d.criado_em is string && d.atualizado_em is string && d.criado_por is string
+        && d.atualizado_por == request.auth.uid;
+    }
+    match /projetos/{projeto} {
+      allow get: if autorizado(projeto);
+      allow list, write: if false;
+      match /membros/{uid} {
+        allow get: if autorizado(projeto) && (uid == request.auth.uid || coordenacao(projeto));
+        allow list: if coordenacao(projeto);
+        allow create: if coordenacao(projeto) && uid != request.auth.uid && membroValido(projeto, uid)
+          && request.resource.data.versao == 1 && request.resource.data.criado_por == request.auth.uid;
+        allow update: if coordenacao(projeto) && uid != request.auth.uid && membroValido(projeto, uid)
+          && resource.data.papel != 'coordenacao' && request.resource.data.versao == resource.data.versao + 1
+          && request.resource.data.criado_em == resource.data.criado_em && request.resource.data.criado_por == resource.data.criado_por;
+        allow delete: if false;
+      }
+      match /{colecao}/{id} {
+        allow read: if colecao in ['temporadas','praias','cercados','ocorrencias','ninhos','consultas','reservas']
+          && autorizado(projeto) && resource.data.projeto_id == projeto;
+        // E05/E09: schema, imutabilidade e transacao ainda não integrados. Negar escrita.
+        allow write: if false;
+      }
+      match /ninhos/{ninho}/{colecao}/{id} {
+        allow read: if colecao in ['transferencias','visitas','aberturas'] && autorizado(projeto)
+          && resource.data.projeto_id == projeto && resource.data.ninho_id == ninho;
+        allow write: if false;
+      }
+    }
+    match /{document=**} { allow read, write: if false; }
+  }
+}

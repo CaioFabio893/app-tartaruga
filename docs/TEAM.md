@@ -2,10 +2,13 @@
 
 Divisão para evitar conflito de arquivos (execução sequencial, um dono por arquivo).
 
+Em 02/10/2026, o usuário autorizou o Codex a assumir também a implementação após esgotar a cota do
+OpenCode. A execução permanece sequencial, com escopos em `docs/tasks` e estado em `STATUS.md`.
+
 | Papel | Ferramenta | Responsabilidade |
 | --- | --- | --- |
-| Visual (design) | Gemini | Identidade visual, componentes, SVG, protótipo (já entregue em `docs/design/*` e `design-preview/*`) |
-| Implementação e documentação | OpenCode | Estrutura, código, testes, documentação, PWA, Firebase, PDF |
+| Visual (design) | Claude | Identidade visual, componentes, SVG, protótipo (já entregue em `docs/design/*` e `design-preview/*`) |
+| Implementação e documentação (atual) | Codex | Estrutura, código, testes, documentação, PWA, Firebase, PDF |
 | Revisão (domínio/dados/segurança/offline/relatório) | Codex | Revisão crítica antes/depois, cálculos, regras Firestore, sincronização, integridade dos dados |
 
 ## Procedimento de transferência

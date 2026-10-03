@@ -1,0 +1,9 @@
+{
+  "indexes": [
+    { "collectionGroup": "consultas", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "projeto_id", "order": "ASCENDING" }, { "fieldPath": "criterio", "order": "ASCENDING" },
+      { "fieldPath": "data_criterio", "order": "ASCENDING" }, { "fieldPath": "__name__", "order": "ASCENDING" }
+    ] }
+  ],
+  "fieldOverrides": []
+}

@@ -163,7 +163,7 @@ describe('PCT_VIVOS (p. 5)', () => {
 describe('TEMP_INCUB (p. 5)', () => {
   const ctx = { tipoOcorrencia: 'CD' as const, historicoNinho: 'SU' as const }
 
-  it('conta os dias entre postura e emergencia do menor filhote', () => {
+  it('conta os dias entre postura e emergencia de pelo menos um filhote', () => {
     expect(calcularTempoIncubacao('2026-10-02', '2026-10-23', ctx).valor).toBe(21)
   })
 
@@ -188,5 +188,21 @@ describe('TEMP_INCUB (p. 5)', () => {
         historicoNinho: 'PH',
       }).valor,
     ).toBeNull()
+  })
+})
+
+describe('dados inconsistentes nao chegam aos indicadores', () => {
+  it.each([-1, 1.5, NaN, Infinity])('recusa contagem %s no total normal e na transferencia', (valor) => {
+    expect(calcularOvosTotais({ ...componentes, vivos: valor }, base).valor).toBeNull()
+    expect(calcularOvosTotais(componentes, { ...base, situacao: 'T', problemaIncubacao: true, ovosTransferencia: valor }).valor).toBeNull()
+  })
+  it('recusa percentual acima de 100 e total nao finito', () => {
+    const total = calcularOvosTotais(componentes, base)
+    expect(calcularPercentualVivos(99, total, base).valor).toBeNull()
+    expect(calcularPercentualVivos(80, { ...total, valor: NaN }, base).valor).toBeNull()
+  })
+  it('data invalida deixa a incubacao vazia sem lancar excecao', () => {
+    expect(calcularTempoIncubacao('2026-02-30', '2026-03-10', base).valor).toBeNull()
+    expect(calcularTempoIncubacao('invalida', '2026-03-10', base).valor).toBeNull()
   })
 })

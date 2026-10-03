@@ -19,16 +19,22 @@ O PDF é gerado **no cliente** com `pdf-lib`. O layout é **proposta** até a eq
 As datas do filtro são comparadas com as **datas de referência de campo**, nunca com `Date` UTC
 (`DOMAIN_RULES` §3).
 
+Na integração oficial planejada, projeção por projeto/critério com limites inclusivos >= inicio e <= fim e filtros escalares (D-014), índices próprios por combinação. Contrato em src/domain/consultas.ts; emulador não valida índices de produção. Na interface atual o conjunto é o treino local conhecido, sem leitor oficial.
+
+Implementação em src/report/relatorio.ts valida e congela snapshot usado pelas três exportações. Eclosão é considerada antes da abertura e independentemente de contagens. Data canônica/referência de noite divergentes ou múltiplas datas distintas são ambiguidade rastreada, sem escolha silenciosa; registro excluído e relatório parcial. Período não usa Date UTC.
+
 ## 2. Política para datas vazias
 
 Registro **sem a data do critério** não entra no relatório. A tela mostra:
 
 - `incluídos: N`
-- `excluídos por data ausente: M`
-- `excluídos por filtro: K`
+- `excluídos por data ausente: M`, somente se apurado numa consulta adicional com escopo explícito
+- `excluídos por filtro: K`, somente se houver conjunto-base conhecido; caso contrário não exibir
 
-Um registro sem data **não** é tratado como zero, nem como fora de qualquer período, nem entra
-silenciosamente. Se `M > 0`, a prévia traz o aviso "relatório incompleto: N registros sem a data do critério".
+Uma consulta por intervalo não retorna os registros sem a data; não consegue contar essas exclusões
+sozinha. O `M` só é exibido quando apurado por uma consulta **adicional** de contagem com o mesmo escopo e os
+mesmos filtros do relatório: `descreverConsultaAusentes` (`src/domain/consultas.ts`) descreve essa contagem
+com `data_criterio = null`. Sem esse escopo explícito, não exibir o número de excluídos.
 
 ## 3. Colunas
 
@@ -44,7 +50,7 @@ Localização original (praia, km, bairro, referência, latitude/longitude com 5
 Localização atual e histórico de transferências · Animal (marcas encontradas/colocadas/retiradas, espécie,
 biometria, tumores, coleta, interação com pesca) · Manejo (`TEMP_TRANSF`, ovos da transferência) ·
 Eclosão e abertura (datas, vivos, natimortos, não eclodidos, furados, não viáveis, derivados) ·
-Observações.
+Observações e visitas (acréscimo do projeto, sem alterar HIST_NINHO).
 
 Nomes de exportação conforme `FIELD_DICTIONARY` §7, aceitando os aliases na importação.
 
@@ -60,15 +66,15 @@ Nomes de exportação conforme `FIELD_DICTIONARY` §7, aceitando os aliases na i
 | `N_NINHO` | `situacao = 'T'` | demais: não exibido |
 
 Totais do período somam apenas valores presentes; a linha de totais indica quantos registros ficaram sem
-valor, para o total não parecer completo quando não é.
+valor, para o total não parecer completo quando não é. Se nenhum valor foi observado, total = null; soma que ultrapassa inteiro seguro também fica null com motivo. Não calcular média agregada de percentuais sem regra da coordenação. Conservadorismo v2 para problemaIncubacao desconhecido está registrado em DOMAIN_RULES §5.2/DECISIONS, sem nova fórmula.
 
 ## 5. Layout A4 proposto
 
 - Página 1: identificação do projeto, período, critério, resumo, tabela resumida, avisos de incompletude.
-- Páginas seguintes: fichas detalhadas, uma ou duas por página, com quebra de página antes do título.
+- Páginas seguintes: fichas detalhadas, cada ficha inicia página própria, com continuação quando necessário, com quebra de página antes do título.
 - Rodapé em todas as páginas: `Página X de Y`, período e data de geração.
-- Acentuação correta em fonte padrão do `pdf-lib` (PDF puro não embute fonte; testar acentos antes de
-  publicar — pendência em `TESTING.md`).
+- Fontes padrão locais Helvetica/HelveticaBold, sem fonte remota; acentos pt-BR e travessão verificados. Glifo não suportado vira `?` com aviso explícito; JSON conserva texto original.
+- Identificação da ficha repetida nas páginas de continuação.
 - Observações longas: quebrar o texto, sem cortar e sem transbordar a margem.
 - Valores vazios impressos como `—`, **nunca** `0`.
 - Tabela resumida não é espremida: se as colunas não caberem, dividir em duas tabelas ou reduzir para as
@@ -78,7 +84,10 @@ valor, para o total não parecer completo quando não é.
 
 - **PDF**: cliente, `pdf-lib`, sem servidor.
 - **JSON**: mesmo conjunto do PDF, com nomes internos e de exportação.
-- **CSV**: mesmos registros do PDF; números com zeros iniciais entre aspas, para não perder o `007`.
+- **CSV**: mesmos registros do PDF, cabeçalho completo mesmo sem linhas. Aspas escapam delimitadores, mas não obrigam Excel a preservar
+  zeros iniciais; orientar importação das colunas como texto. JSON mantém identificadores como strings.
+  Tratar células iniciadas por =, +, - ou @ na exportação destinada a planilhas, evitando fórmulas
+  vindas de texto de usuário: prefixar apóstrofo em strings iniciadas por esses sinais (incluindo espaços/controles iniciais); não alterar números negativos reais. JSON preserva original.
 - Marcar **parcial** quando exportado offline ou com pendência de sincronização (`OFFLINE.md`).
 - PDF não é backup: a cópia de dados é o JSON/CSV.
 
@@ -94,3 +103,7 @@ valor, para o total não parecer completo quando não é.
 8. Observação longa quebrando página sem corte.
 9. Offline: PDF gerado marcado como parcial.
 10. Filtro por praia, espécie e temporada combinada com o período.
+
+## 8. Entrega e evidência
+
+E02 concluída para treino; todos os relatórios atuais são parciais/demonstrativos. Login não confirma sincronização de fichas. Definitivo exige fonte oficial completa, online e sincronização confirmada (E10 pendente). Amostra output/pdf/relatorio-demonstracao.pdf, testes/revisão visual em TESTING.md. Não incluir FOTOGRAFIA. Cinco casos fictícios; nenhum vínculo com projeto real.

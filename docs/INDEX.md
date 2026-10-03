@@ -14,6 +14,7 @@ Use este documento para ler **apenas** o que for necessário. Não carregue todo
 | Especificação do relatório | `docs/REPORT_SPEC.md` | Filtros, PDF, exportação |
 | Dicionário de campos | `docs/FIELD_DICTIONARY.md` | Pergunta sobre qualquer campo do manual |
 | Regras de domínio | `docs/DOMAIN_RULES.md` | Fórmulas, condições, exceções, dúvidas |
+| Texto do manual | `docs/references/MANUAL-TRANSCRITO.md` | Buscar campo específico na transcrição do usuário; PDF apenas para dúvidas de transcrição |
 | Firebase e limites Spark | `docs/FIREBASE.md` | Configuração, cotas, sem Blaze |
 | Segurança e perfis | `docs/SECURITY.md` | Regras Firestore, papéis |
 | Offline e sincronização | `docs/OFFLINE.md` | Fila, conflito, parcial |
@@ -30,4 +31,4 @@ Use este documento para ler **apenas** o que for necessário. Não carregue todo
 | Revisões | `docs/reviews/*.md` | Achados do Codex |
 
 **Regra**: consulte por assunto, não por diretório inteiro. O manual já está convertido; volte ao PDF apenas
-para confirmar uma dúvida pontual (`FIELD_DICTIONARY` aponta página).
+para confirmar dúvida de transcrição. A fonte textual está em `docs/references/MANUAL-TRANSCRITO.md`.

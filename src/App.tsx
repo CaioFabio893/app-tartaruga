@@ -1,17 +1,137 @@
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
+import { criarTreino, carregarTreino, gravarTreino, fichasDoTreino, type EstadoTreino } from './app/treino'
+import { montarFichaNinho, montarResumo } from './domain/agregado'
+import { camposExportacao, gerarCSV, gerarJSON, montarRelatorio, texto, totalObservado, type Relatorio } from './report/relatorio'
+import { CRITERIOS, type Criterio } from './domain/consultas'
+import { ESPECIES, SITUACOES, HISTORICOS_NINHO } from './domain/tipos'
+import { registrarCacheInterface } from './services/pwa'
 import './styles/base.css'
+import './styles/interface.css'
 
-function App() {
-  return (
-    <main style={{ padding: '24px', maxWidth: '900px', margin: '0 auto' }}>
-      <h1>Monitoramento de Ninhos</h1>
-      <p>Base do app criada seguindo AGENTS.md, DOMAIN_RULES.md e DATA_MODEL.md.</p>
-      <ul>
-        <li>Vite + TypeScript strict</li>
-        <li>Domínio puro com cálculos versionados</li>
-        <li>Regras de data (noite de monitoramento) com 40 testes</li>
-      </ul>
-    </main>
-  )
+const telas = ['Ninhos', 'Mapa', 'Ocorrências', 'Relatórios', 'Cadastros'] as const
+type Tela = typeof telas[number]
+const Acesso = lazy(() => import('./features/acesso/Acesso'))
+const NovaOcorrencia=lazy(()=>import('./features/treino/Formularios').then(m=>({default:m.NovaOcorrencia})))
+const NovaTransferencia=lazy(()=>import('./features/treino/Formularios').then(m=>({default:m.NovaTransferencia})))
+const FormularioAbertura=lazy(()=>import('./features/treino/Formularios').then(m=>({default:m.FormularioAbertura})))
+const NovaVisita=lazy(()=>import('./features/treino/Formularios').then(m=>({default:m.NovaVisita})))
+const MapaCoordenadas=lazy(()=>import('./features/mapa/MapaCoordenadas'))
+const caminhos = ['M4 16c2-8 14-8 16 0M3 17h18M7 17v3m10-3v3', 'm3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3zM9 3v15m6-12v15', 'M6 4h12v17H6zM9 9h6m-6 4h6m-6 4h4', 'M5 3h10l4 4v14H5zM9 17v-4m3 4v-7m3 7v-5', 'M4 6h16M4 12h16M4 18h16M8 4v4m8 2v4M8 16v4']
+function Icone({ indice }: { indice: number }) { return <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d={caminhos[indice]} /></svg> }
+function baixar(conteudo: string | Uint8Array, mime: string, nome: string) {
+  const blob = new Blob([typeof conteudo === 'string' ? conteudo : new Uint8Array(conteudo)], { type: mime })
+  const url = URL.createObjectURL(blob); const link = document.createElement('a')
+  link.href = url; link.download = nome; document.body.append(link); link.click(); link.remove()
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
 }
-
+function App() {
+  const [tela, setTela] = useState<Tela>('Relatórios'), [online, setOnline] = useState(navigator.onLine)
+  const [inicio, setInicio] = useState('2026-10-01'), [fim, setFim] = useState('2026-10-31')
+  const [criterio, setCriterio] = useState<Criterio>('ECLOS')
+  const [especie, setEspecie] = useState(''), [situacao, setSituacao] = useState(''), [historico, setHistorico] = useState('')
+  const [praia, setPraia] = useState(''), [temporada, setTemporada] = useState('')
+  const [erro, setErro] = useState(''), [ocupado, setOcupado] = useState(false)
+  const [selecionado, setSelecionado] = useState<string | null>(null), [relatorio, setRelatorio] = useState<Relatorio | null>(null)
+  const [estado,setEstado]=useState(criarTreino),[localPronto,setLocalPronto]=useState(false),[avisoLocal,setAvisoLocal]=useState('')
+  const [formulario,setFormulario]=useState<'ocorrencia'|'transferencia'|'abertura'|'visita'|null>(null)
+  const [avisoCache,setAvisoCache]=useState('')
+  const dados=useMemo(()=>fichasDoTreino(estado),[estado])
+  const todas=useMemo(()=>({registros:dados.map(origem=>{const ficha=montarFichaNinho(origem);return {origem,ficha,linha:montarResumo({criterio:'OCORR',fichas:[ficha]})[0]!}})}),[dados])
+  const ficha = todas.registros.find(r => r.ficha.ninho.id === selecionado)
+  useEffect(() => {
+    const atualizar = () => setOnline(navigator.onLine)
+    window.addEventListener('online', atualizar); window.addEventListener('offline', atualizar)
+    return () => { window.removeEventListener('online', atualizar); window.removeEventListener('offline', atualizar) }
+  }, [])
+  useEffect(()=>{
+    let ativo=true
+    void carregarTreino().then(e=>{if(ativo){setEstado(e);setLocalPronto(true)}}).catch(e=>{if(ativo)setErro(e instanceof Error?e.message:'Armazenamento indisponível.')})
+    const canal=typeof BroadcastChannel==='undefined'?null:new BroadcastChannel('ninhos-treino')
+    if(canal)canal.onmessage=()=>{if(ativo)setAvisoLocal('Outra aba alterou o treino. Confira a atualização antes de salvar; seu formulário está preservado.')}
+    return ()=>{ativo=false;canal?.close()}
+  },[])
+  useEffect(()=>{let ativo=true;let parar:(()=>void)|undefined;void registrarCacheInterface(m=>{if(ativo)setAvisoCache(m)}).then(p=>{if(ativo)parar=p;else p()}).catch(()=>{if(ativo)setAvisoCache('Cache da interface não confirmado. Use conexão para reabrir o aplicativo. Dados locais não foram apagados.')});return()=>{ativo=false;parar?.()}},[])
+  async function salvarLocal(novo:EstadoTreino) {
+    await gravarTreino(novo,estado.revisao)
+    setEstado(novo);setFormulario(null);setRelatorio(null);setAvisoLocal('✓ Salvo no aparelho. Não sincronizado com o projeto real.');setErro('')
+    if(typeof BroadcastChannel!=='undefined'){const c=new BroadcastChannel('ninhos-treino');c.postMessage('alterado');c.close()}
+  }
+  async function recarregarLocal(){try{setEstado(await carregarTreino());setLocalPronto(true);setRelatorio(null);setAvisoLocal('Treino local atualizado. Não sincronizado.');setErro('')}catch(e){setErro(e instanceof Error?e.message:'Falha na leitura local.')}}
+  function navegar(proxima: Tela) { if(formulario){setErro('Conclua ou cancele o formulário antes de mudar de tela. Seu rascunho foi preservado.');return}setTela(proxima);setSelecionado(null);setErro('') }
+  function alterar() { setRelatorio(null); setErro('') }
+  function previa() {
+    try {
+      setRelatorio(montarRelatorio({ projetoNome: 'Projeto demonstrativo', dados,
+        consulta: { projetoId: 'projeto-demo', criterio, inicio, fim, filtros: {
+          praiaCodigo: praia || null, temporadaId: temporada || null,
+          especieCodigo: especie ? especie as typeof ESPECIES[number] : null,
+          situacao: situacao ? situacao as typeof SITUACOES[number] : null,
+          historicoNinho: historico ? historico as typeof HISTORICOS_NINHO[number] : null } },
+        fonte: { demonstracao: true, online, sincronizacaoConfirmada: false, conjuntoCompleto: true }, geradoEm: new Date().toISOString() }))
+      setErro('')
+    } catch (e) { setRelatorio(null); setErro(e instanceof Error ? e.message : 'Não foi possível preparar o relatório.') }
+  }
+  async function exportar(formato: 'PDF' | 'JSON' | 'CSV') {
+    if (!relatorio) return
+    setOcupado(true); setErro('')
+    try {
+      const atual = !navigator.onLine && relatorio.fonte.online ? { ...relatorio, parcial: true,
+        fonte: { ...relatorio.fonte, online: false }, avisos: [...relatorio.avisos, 'Exportação offline: parcial.'] } : relatorio
+      const nome = `ninhos-demonstracao-parcial-${criterio.toLowerCase()}-${inicio}-${fim}`
+      if (formato === 'PDF') { const { gerarPDF } = await import('./report/pdf'); baixar(await gerarPDF(atual), 'application/pdf', nome + '.pdf') }
+      else if (formato === 'JSON') baixar(gerarJSON(atual), 'application/json;charset=utf-8', nome + '.json')
+      else baixar(gerarCSV(atual), 'text/csv;charset=utf-8', nome + '.csv')
+    } catch (e) { setErro(e instanceof Error ? e.message : 'Falha ao exportar.') }
+    finally { setOcupado(false) }
+  }
+  return <div className="app-shell">
+    <a className="pular" href="#conteudo">Ir para o conteúdo</a>
+    <aside className="lateral"><div className="marca"><Icone indice={0} /><strong>Monitoramento<br />de Ninhos</strong></div>
+      <nav aria-label="Navegação principal">{telas.map((t, i) => <button key={t} aria-current={tela === t ? 'page' : undefined} onClick={() => navegar(t)}><Icone indice={i} /><span>{t}</span></button>)}</nav>
+      <p className="lateral-nota">Projeto social<br /><small>Maré e Areia · demonstração</small></p>
+    </aside>
+    <main id="conteudo" className="conteudo"><header className="cabecalho"><div><p className="sobretitulo">PROJETO DEMONSTRATIVO</p><h1>{ficha ? `Ficha ${ficha.ficha.ninho.codigoInterno}` : tela}</h1></div><span className="selo">{online ? '◉ Conexão disponível' : '○ Sem internet'}</span></header>
+      <div className="mensagem aviso"><strong>⚑ Modo de treino: não cadastre fichas oficiais.</strong> Exemplos fictícios e suas alterações ficam apenas neste aparelho. Nada é sincronizado, mesmo após login. Todas as exportações são parciais.</div>
+      <div className="status-local"><span>{localPronto?`${estado.operacoes.length} alterações locais · não sincronizadas`:'Preparando armazenamento de treino…'}</span><button className="btn" disabled={!!formulario} onClick={()=>void recarregarLocal()}>Conferir atualização local</button><button className="btn" onClick={()=>baixar(JSON.stringify({modo:'TREINO_LOCAL',parcial:true,estado},null,2),'application/json','backup-treino-local.json')}>Exportar treino JSON</button></div>
+      {avisoLocal&&<p className="mensagem" role="status">{avisoLocal}</p>}
+      {avisoCache&&<p className="mensagem" role="status">{avisoCache}</p>}
+      {erro && <div className="mensagem erro" role="alert">{erro}</div>}
+      {!ficha&&(tela==='Ninhos'||tela==='Ocorrências')&&<div className="acoes"><button className="btn prim" disabled={!localPronto||!!formulario} onClick={()=>setFormulario('ocorrencia')}>Registrar ocorrência de treino</button><span className="ajuda">Só CD cria ninho.</span></div>}
+      {formulario&&<Suspense fallback={<p role="status">Carregando formulário…</p>}>{formulario==='ocorrencia'?<NovaOcorrencia estado={estado} aoSalvar={salvarLocal} cancelar={()=>setFormulario(null)}/>:selecionado&&formulario==='transferencia'?<NovaTransferencia estado={estado} ninhoId={selecionado} aoSalvar={salvarLocal} cancelar={()=>setFormulario(null)}/>:selecionado&&formulario==='visita'?<NovaVisita estado={estado} ninhoId={selecionado} aoSalvar={salvarLocal} cancelar={()=>setFormulario(null)}/>:selecionado&&<FormularioAbertura estado={estado} ninhoId={selecionado} aoSalvar={salvarLocal} cancelar={()=>setFormulario(null)}/>}</Suspense>}
+      {ficha ? <><div className="acoes"><button className="btn" disabled={!!formulario} onClick={() => setSelecionado(null)}>← Voltar à lista</button><button className="btn" disabled={!localPronto||!!formulario} onClick={()=>setFormulario('transferencia')}>Registrar transferência</button><button className="btn" disabled={!localPronto||!!formulario} onClick={()=>setFormulario('visita')}>Registrar visita</button><button className="btn prim" disabled={!localPronto||!!formulario} onClick={()=>setFormulario('abertura')}>Eclosão / abertura</button></div>
+        <section className="cartao"><h2>Localização original e atual</h2><div className="grade-dupla">{[['Original', ficha.origem.ocorrencia!.localOrigem], ['Atual, derivada do histórico', ficha.ficha.posicaoAtual.local]].map(([nome, local]) => {
+          const l = local as typeof ficha.ficha.posicaoAtual.local
+          return <div key={String(nome)}><h3>{String(nome)}</h3><p>Praia: {texto(l.praiaCodigo)} · km {texto(l.localKm)}</p><p>{texto(l.referencia)}</p><p>Latitude {texto(l.latitude?.toFixed(5))}<br />Longitude {texto(l.longitude?.toFixed(5))}<br />Datum {texto(l.datum)}</p></div> })}</div></section>
+        <section className="cartao"><h2>Ficha de campo</h2><dl className="campos">{Object.entries(camposExportacao(ficha)).filter(([k]) => !(k === 'NAO_VIAVEIS' && ficha.linha.especieCodigo !== 'DC') && !(k === 'N_NINHO' && ficha.linha.situacao !== 'T')).map(([k,v]) => <div key={k}><dt>{k}</dt><dd>{texto(v)}</dd></div>)}</dl></section>
+        <section className="cartao"><h2>Transferências</h2>{ficha.origem.transferencias.length ? ficha.origem.transferencias.map(t => <p key={t.id}>{t.dataTransferencia} · {t.destino} · km {texto(t.localDestino.localKm)} · ovos {texto(t.ovosTransferencia)}<br />{texto(t.observacoes)}</p>) : <p>Nenhuma transferência registrada.</p>}<h2>Avisos</h2>{ficha.linha.motivos.map((m,i) => <p key={i}>{m}</p>)}</section>
+      </> : tela === 'Relatórios' ? <>
+        <p className="introducao">Escolha o período e a data usada para selecionar os ninhos. Confira a prévia e baixe o relatório.</p>
+        <section className="cartao"><h2>Filtros do relatório</h2><form onSubmit={e => { e.preventDefault(); previa() }}><div className="filtros">
+          <label>Data inicial<input required type="date" value={inicio} onChange={e => { setInicio(e.target.value); alterar() }} /></label>
+          <label>Data final<input required type="date" value={fim} onChange={e => { setFim(e.target.value); alterar() }} /></label>
+          <label>Selecionar pela data de<select aria-label="Selecionar pela data de" value={criterio} onChange={e => { setCriterio(e.target.value as Criterio); alterar() }}>{CRITERIOS.map(c => <option key={c} value={c}>{c === 'OCORR' ? 'Ocorrência' : c === 'ECLOS' ? 'Eclosão' : 'Abertura'}</option>)}</select></label>
+          <label>Espécie<select aria-label="Espécie" value={especie} onChange={e => { setEspecie(e.target.value); alterar() }}><option value="">Todas</option>{ESPECIES.map(c => <option key={c}>{c}</option>)}</select></label>
+          <label>Situação<select aria-label="Situação" value={situacao} onChange={e => { setSituacao(e.target.value); alterar() }}><option value="">Todas</option>{SITUACOES.map(c => <option key={c}>{c}</option>)}</select></label>
+          <label>Histórico<select aria-label="Histórico" value={historico} onChange={e => { setHistorico(e.target.value); alterar() }}><option value="">Todos</option>{HISTORICOS_NINHO.map(c => <option key={c}>{c}</option>)}</select></label>
+          <label>Código da praia<input value={praia} placeholder="Todas as praias" onChange={e => { setPraia(e.target.value); alterar() }} /><small>Lista oficial ainda não fornecida.</small></label>
+          <label>Temporada<select aria-label="Temporada" value={temporada} onChange={e => { setTemporada(e.target.value); alterar() }}><option value="">Todas</option><option value="temporada-demo-2026">2026 · demonstração</option></select></label>
+          </div><div className="acoes"><button className="btn prim" type="submit">Gerar prévia</button><span className="ajuda">Datas inclusivas · campos vazios preservados</span></div></form></section>
+        {!relatorio ? <section className="cartao vazio"><Icone indice={3} /><h2>Confira antes de exportar</h2><p>Gere a prévia para ver exatamente quais ninhos estarão nos arquivos.</p></section> : <section className="cartao" aria-live="polite" aria-busy={ocupado}><div className="titulo-acoes"><h2>Prévia · {relatorio.registros.length} {relatorio.registros.length===1?'ninho':'ninhos'}</h2><span className="selo parcial">⚑ Parcial · layout proposto</span></div>
+          {!!relatorio.exclusoes?.dataAmbigua&&<p className="mensagem aviso">{relatorio.exclusoes.dataAmbigua} ninhos excluídos por datas divergentes. Confira os registros; nenhuma data foi escolhida automaticamente.</p>}
+          <div className="metricas">{(['vivos','ovosTotais'] as const).map(c => { const t = totalObservado(relatorio,c); return <div key={c}><small>{c === 'vivos' ? 'Vivos observados' : 'Total de ovos observado'}</small><strong>{texto(t.valor)}</strong><small>{t.ausentes} ninhos sem valor</small></div> })}<div><small>Excluídos por data ausente</small><strong>{texto(relatorio.exclusoes?.dataAusente)}</strong><small>Mesmo conjunto e filtros</small></div></div>
+          {!relatorio.registros.length ? <p className="vazio">Nenhum ninho atende aos filtros. Ajuste o período ou os filtros.</p> : <div className="tabela-rolagem" tabIndex={0} aria-label="Resumo dos ninhos, role horizontalmente para ver todas as colunas"><table><caption>Mesmo conjunto usado no PDF, JSON e CSV</caption><thead><tr>{['Registro','Data escolhida','Espécie','Situação','Histórico','Vivos','Natimortos','Não ecl.','Furados','Total','% vivos','Incubação (dias)'].map(c => <th key={c} scope="col">{c}</th>)}</tr></thead><tbody>{relatorio.registros.map(r => <tr key={r.ficha.ninho.id}>{[r.linha.numeroRegistro,r.linha.dataCriterio,r.linha.especieCodigo,r.linha.situacao,r.linha.historicoNinho,r.linha.vivos,r.linha.natimortos,r.linha.ovosNaoEclodidos,r.linha.ovosFurados,r.linha.ovosTotais,r.linha.percentualVivos,r.linha.tempoIncubacaoDias].map((v,i) => <td key={i}>{texto(v)}</td>)}</tr>)}</tbody></table></div>}
+          <div className="acoes">{(['PDF','JSON','CSV'] as const).map(f => <button key={f} className={`btn ${f === 'PDF' ? 'prim' : ''}`} disabled={ocupado} onClick={() => void exportar(f)}>Baixar {f}</button>)}{ocupado && <span role="status">Preparando arquivo…</span>}</div><p className="ajuda">PDF: resumo e fichas completas. JSON: insumos originais. CSV: importe números de registro como texto para preservar zeros iniciais.</p>
+        </section>}
+      </> : tela === 'Ninhos' || tela === 'Mapa' ? <><p className="introducao">{tela === 'Mapa' ? 'Consulte a lista de coordenadas e o esquema de posições atuais, sem mapa-base.' : 'Abra a ficha para consultar ocorrência, tartaruga, transferências e abertura.'}</p><div className="lista-ninhos">{todas.registros.map(r => <button className="cartao cartao-ninho" key={r.ficha.ninho.id} onClick={() => setSelecionado(r.ficha.ninho.id)}><span className="titulo-acoes"><strong>{r.ficha.ninho.codigoInterno}</strong><span className="selo">{r.ficha.ninho.estadoAcompanhamento}</span></span><span>Registro {texto(r.linha.numeroRegistro)} · espécie {texto(r.linha.especieCodigo)}</span><span>Praia {texto(r.linha.praiaCodigo)} · km {texto(r.ficha.posicaoAtual.local.localKm)}</span>{tela === 'Mapa' && <span>Latitude {texto(r.ficha.posicaoAtual.local.latitude?.toFixed(5))} · longitude {texto(r.ficha.posicaoAtual.local.longitude?.toFixed(5))}</span>}<span className="link-texto">Abrir ficha →</span></button>)}</div></> : tela === 'Ocorrências' ? <section className="cartao vazio"><Icone indice={2} /><h2>Registros de ocorrência</h2><p>Confira abaixo as ocorrências de treino guardadas no aparelho. Ocorrências sem desova não criam ninho.</p><button className="btn" onClick={() => navegar('Ninhos')}>Consultar ninhos demonstrativos</button></section> : <section className="cartao"><h2>Cadastros da demonstração</h2><dl className="campos"><div><dt>Projeto</dt><dd>Projeto demonstrativo</dd></div><div><dt>Temporada</dt><dd>2026 · demonstração</dd></div><div><dt>Espécies do manual</dt><dd>{ESPECIES.join(' · ')}</dd></div><div><dt>Praias e evidências</dt><dd>Lista oficial pendente da coordenação.</dd></div></dl><p>A coordenação fornece o acesso e autoriza os membros. O treino permanece separado dos dados reais. Nenhum papel administrativo é atribuído nesta tela.</p></section>}
+      {ficha&&<section className="cartao"><h2>Acompanhamento</h2>{ficha.origem.visitas?.length?ficha.origem.visitas.map(v=><p key={v.id}>{v.dataVisita} · {texto(v.condicao)} · {texto(v.eventos)}<br/>{texto(v.observacoes)}</p>):<p>Nenhuma visita registrada no treino.</p>}</section>}
+      {tela === 'Cadastros' && !ficha && <Suspense fallback={<p role="status">Carregando acesso…</p>}><Acesso /></Suspense>}
+      {tela==='Ocorrências'&&!ficha&&<section className="cartao"><h2>Ocorrências guardadas no aparelho</h2><div className="tabela-rolagem"><table><thead><tr><th scope="col">Registro</th><th scope="col">Tipo</th><th scope="col">Data de campo</th><th scope="col">Espécie</th><th scope="col">Ninho</th></tr></thead><tbody>{estado.ocorrencias.map(o=><tr key={o.id}><td>{texto(o.numeroRegistro)}</td><td>{o.tipoOcorrencia}</td><td>{texto(o.dataOcorrencia)}</td><td>{texto(o.especieCodigo)}</td><td>{o.ninhoId?<button className="btn" disabled={!!formulario} onClick={()=>setSelecionado(o.ninhoId)}>Abrir ninho</button>:'Sem ninho'}</td></tr>)}</tbody></table></div></section>}
+      {tela==='Mapa'&&!ficha&&<Suspense fallback={<p role="status">Carregando posições…</p>}><MapaCoordenadas registros={todas.registros} abrir={setSelecionado}/></Suspense>}
+      <footer className="rodape-app">Sem fotos ou upload · fonte local · dados fictícios · nenhuma publicação</footer>
+    </main>
+  </div>
+}
 export default App
+
+
+

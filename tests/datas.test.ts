@@ -6,6 +6,10 @@ import {
   dentroDoPeriodo,
   diferencasDias,
   validarDataAbertura,
+  paraDia,
+  partesInstante,
+  somarDias,
+  sugerirTempoTransferencia,
 } from '../src/domain/datas.ts'
 
 describe('dataReferenciaNoite (DOMAIN_RULES 3.2 e 3.3)', () => {
@@ -25,11 +29,9 @@ describe('dataReferenciaNoite (DOMAIN_RULES 3.2 e 3.3)', () => {
     expect(dataReferenciaNoite('2026-10-03T12:01:00-03:00')).toBe('2026-10-03')
   })
 
-  it('nao depende do fuso do ambiente: mesmo instante com offsets diferentes', () => {
-    // 2026-10-03T01:30-03:00 e 2026-10-03T04:30Z sao o mesmo instante, madrugada do dia 3.
-    expect(dataReferenciaNoite('2026-10-03T01:30:00-03:00')).toBe(
-      dataReferenciaNoite('2026-10-03T04:30:00Z'),
-    )
+  it('interpreta a hora do texto; o chamador deve fornecer o horario local do projeto', () => {
+    expect(dataReferenciaNoite('2026-10-03T11:30:00-03:00')).toBe('2026-10-02')
+    expect(dataReferenciaNoite('2026-10-03T14:30:00Z')).toBe('2026-10-03')
   })
 
   it('usa o offset local, nao UTC: 23:30-05:00 e a noite do proprio dia', () => {
@@ -86,7 +88,7 @@ describe('datas de campo', () => {
 })
 
 describe('validarDataAbertura (p. 4)', () => {
-  it('aceita abertura no dia seguinte a eclosao', () => {
+  it('aceita abertura na mesma data de campo da eclosao', () => {
     expect(validarDataAbertura('2026-10-02', '2026-10-02')).toBe('ok')
   })
 
@@ -97,5 +99,34 @@ describe('validarDataAbertura (p. 4)', () => {
   it('aceita abertura sem eclosao registrada', () => {
     expect(validarDataAbertura(null, '2026-10-02')).toBe('ok')
     expect(validarDataAbertura('2026-10-02', null)).toBe('sem_eclosao')
+  })
+})
+
+describe('entradas de calendario e horario invalidas', () => {
+  it.each(['2026-02-29', '2026-02-30', '2026-04-31', '0000-01-01'])('recusa a data impossivel %s', (data) => {
+    expect(paraDia(data)).toBeNull()
+    expect(dentroDoPeriodo(data, '2026-01-01', '2026-12-31')).toBe(false)
+  })
+  it('aceita ano bissexto e preserva ano abaixo de 100', () => {
+    expect(somarDias('2024-02-28', 1)).toBe('2024-02-29')
+    expect(deParaDia(paraDia('0099-01-01')!)).toBe('0099-01-01')
+    expect(deParaDia(1e15)).toBeNull()
+    expect(() => somarDias('2026-10-02', 0.5)).toThrow()
+  })
+  it.each(['2026-10-02T24:00:00-03:00', '2026-10-02T12:60:00-03:00', '2026-10-02T12:00:60-03:00', '2026-02-30T10:00:00-03:00', '2026-10-02T12:00:00+14:01', '2026-10-02T12:00:00-03:60'])('recusa o instante invalido %s', (instante) => {
+    expect(partesInstante(instante)).toBeNull()
+    expect(dataReferenciaNoite(instante)).toBeNull()
+  })
+  it('aceita ISO sem segundos e cobre o corte imediatamente apos meio-dia', () => {
+    expect(dataReferenciaNoite('2026-10-03T01:30-03:00')).toBe('2026-10-02')
+    expect(dataReferenciaNoite('2026-10-03T12:00:01-03:00')).toBe('2026-10-03')
+  })
+  it('09:00 pertence a B; somente depois pertence a C', () => {
+    expect(sugerirTempoTransferencia('2026-10-03T08:59:59-03:00')).toBe('B')
+    expect(sugerirTempoTransferencia('2026-10-03T09:00:00-03:00')).toBe('B')
+    expect(sugerirTempoTransferencia('2026-10-03T09:00:01-03:00')).toBe('C')
+  })
+  it('nao aceita abertura impossivel mesmo sem eclosao informada', () => {
+    expect(validarDataAbertura(null, '2026-02-30')).toBe('invalida')
   })
 })

@@ -1,7 +1,9 @@
 # Arquitetura
 
-Stack: Vite + TypeScript `strict` + HTML/CSS simples + Firebase SDK modular + PWA estática.
+Stack: Vite + TypeScript `strict` + React 19 + HTML/CSS + Firebase SDK modular.
 Plano alvo: **Firestore Standard + Firebase Hosting Spark**, sem Blaze.
+
+> Estado atual: interface React, treino IndexedDB, cache estático no build e Auth/Firestore sob demanda. Emuladores demo configurados. Não há persistência oficial, fila remota ou instalação física validada. STATUS.md distingue entregas locais e oficiais.
 
 ## 1. Árvore de pastas
 
@@ -10,7 +12,8 @@ src/
   app/          operações da aplicação (casos de uso): orquestra domínio + dados, não conhece DOM
   ui/           componentes de interface reutilizáveis, sem regra de negócio
   features/     telas por área: ninhos, ocorrencias, transferencias, visitas, abertura, relatorios, cadastros
-  domain/       regras do manual, tipos, validação e cálculos. PURO: sem Firebase, sem DOM, sem rede
+  domain/       regras do manual, tipos, validação, cálculos, consulta, persistência, fila, reserva e fuso.
+                PURO: sem Firebase, sem DOM, sem rede
   data/         leitura/escrita no Firestore, repositórios, fila offline, mapeamento de documentos
   services/     autenticação, GPS, permissões, rede, sincronização
   report/       geração de PDF (pdf-lib) e exportação JSON/CSV a partir de dados já validados
@@ -46,7 +49,8 @@ Regras verificáveis por leitura de imports:
 3. `src/report/**` não importa `src/data`.
 4. Nenhuma pasta importa `../../` para fora de `src` (exceto `src/styles` e arquivos de configuração).
 
-Se uma regra quebrar, o build de tipos falha por `import` proibido — não por convenção.
+Esses limites são convenções revisadas por leitura de imports. A configuração atual do TypeScript não
+proíbe imports entre camadas; o build não detecta sozinho uma violação arquitetural.
 
 ## 3. Responsabilidade por camada
 
@@ -70,7 +74,7 @@ Se uma regra quebrar, o build de tipos falha por `import` proibido — não por 
 - O app funciona com coordenadas e **lista equivalente** mesmo sem mapa: a lista é o caminho acessível e o
   fallback obrigatório (`design/SCREEN_SPEC.md`).
 
-## 5. Rotas
+## 5. Navegação (destinos planejados; shell atual usa estado local)
 
 | Rota | Precisa de |
 | --- | --- |
@@ -81,24 +85,23 @@ Se uma regra quebrar, o build de tipos falha por `import` proibido — não por 
 | `/mapa` | lista sempre; mapa se carregado |
 | `/ocorrencias` | ocorrências **sem** desova e registros não reprodutivos |
 | `/relatorios` | filtros + prévia; PDF sob demanda |
-| `/cadastros` | projetos, temporadas,responsible,egi,praias, espécies, equipe (papéis) |
+| `/cadastros` | projetos, temporadas, responsáveis, praias, espécies e equipe (papéis) |
 
 ## 6. Estado do formulário de ficha
 
-O formulário é estado **independente da renderização** (`features/ninhos/estadoFicha.ts`). Trocar de etapa
-não recria campos nem perde valores; os campos condicionais somem da tela mas o valor continua no estado
-como `null` quando não aplicável. Isso corrige os defeitos 3 e 4 apontados em `design/REVISAO-CLAUDE.md`.
+Formulários atuais em `features/treino/Formularios.tsx`: estado preservado durante salvamento/falha; navegação protegida enquanto aberto. Correções de abertura guardam valor anterior no histórico. Não existe ainda o fluxo oficial de cinco etapas. Campos de coleta/evidência não são editáveis no treino atual e permanecem null.
 
 ## 7. Offline
 
-`data/fila.ts` guarda escritas pendentes em `IndexedDB` com o `id` do documento. A interface mostra
-pendência, nunca "sincronizado" por ter aceitado no cache (`OFFLINE.md`). Migração da fila é responsabilidade
-de `data/sincronizacao.ts`, não da tela.
+Implementado: `app/treino.ts` valida operações; `data/treino.ts` persiste atomicamente conjunto normalizado e auditoria no IndexedDB, comparando revisão global. Importação de tipo do estado não cria dependência runtime inversa. Aviso entre abas não mescla automaticamente; conflito rejeita gravação e preserva formulário. `vite.config.ts` emite SW só em produção; `services/pwa.ts` comunica cache/atualização sem recarga forçada.
+
+Planejado: repositório/fila/sincronização oficiais com `operationId`/`baseVersion`, conforme contrato puro `domain/fila.ts` e OFFLINE.md. Esses módulos remotos não existem ainda.
 
 ## 8. Decisões abertas (apontadas, não resolvidas aqui)
 
 - Índice de `praias` para o filtro de relatório por praia (`DATA_MODEL` §7).
 - Estratégia final de conflito offline entre aparelhos (`OFFLINE.md`).
-- Provedor de tiles e conteúdo do cache do PWA (`FIREBASE.md`).
+- Provedor de tiles opcional: atual esquema é SVG local, sem mapa-base; cache contém só assets próprios.
 - Procedimento administrativo de criação do primeiro usuário `coordenacao` (`SECURITY.md`).
 - As 8 dúvidas de domínio em `DOMAIN_RULES.md` §8, que são da coordenação científica, não de arquitetura.
+- Escopos exatos das reservas de número `N_REGISTRO`/`N_NINHO` (`reserva.ts`, pendente da coordenação).

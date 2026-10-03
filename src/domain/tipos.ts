@@ -3,6 +3,12 @@
  *
  * Regra transversal: ausente e `null`. Zero observado e `0`. Indeterminado do manual e
  * 'I'/'NI'. Nao aplicavel e ausencia do campo mais o motivo. Nunca usar 0 como padrao.
+ *
+ * Regra de dono unico (DATA_MODEL.md 3): cada campo tem uma unica entidade dona. `Ninho` nao
+ * repete `numero_registro`, `local_origem`, `tempo_transferencia` nem `numero_ninho_cercado`; a
+ * ficha e o relatorio obtem esses valores por juncao com `ocorrencia_id` e por derivacao
+ * (`agregado.ts`). `Transferencia` nao tem `ovos_furados`: `OVOS_FURAD` pertence a `Abertura`,
+ * para `OVOS_TOT` nao somar a mesma contagem duas vezes.
  */
 
 // --- Codigos do manual (p. 2 a 4 do manual de preenchimento) ---
@@ -25,7 +31,7 @@ export type HistoricoNinho = (typeof HISTORICOS_NINHO)[number]
 export const RESPOSTA_TUMORES = ['S', 'N', 'I'] as const
 export type RespostaTumores = (typeof RESPOSTA_TUMORES)[number]
 
-/** Lista fechada de palavras-chave (p. 5-6): sem acento, sem cedilha, no singular. */
+/** Lista fechada de palavras-chave (p. 6-7): sem acento, sem cedilha, no singular. */
 export const PALAVRAS_CHAVE = [
   'ALBINO', 'ANOMALO', 'CACHORRO', 'CARANGUEJO', 'CICATRIZ', 'DNA',
   'EPIBIONTE', 'FORMIGA', 'HIBRIDO', 'LAGARTO', 'MUTILADA', 'PESCA',
@@ -47,10 +53,43 @@ export type EstadoAcompanhamento = (typeof ESTADOS_ACOMPANHAMENTO)[number]
  */
 export type DataCampo = string
 
-/** Instante real em ISO 8601 com offset, ex.: '2026-10-02T21:40:00-03:00'. */
+/** Instante real em ISO 8601 com offset, ex.: '2026-10-02T21:40:00-03:00'. Sempre fuso do projeto. */
 export type Instante = string
 
+/**
+ * Trilha de autoria e concorrencia, presente em **todas** as entidades gravadas.
+ *
+ * `versao` e o criterio de concorrencia: o servidor incrementa a cada gravacao confirmada e uma
+ * alteracao so e aceita quando a versao lida ainda e a esperada (OFFLINE.md, revisao F08).
+ * Nunca comparar `atualizadoEm` de dispositivos diferentes.
+ */
+export interface Trilha {
+  criadoPor: string | null
+  criadoEm: string
+  atualizadoPor: string | null
+  atualizadoEm: string
+  /** Versao de concorrencia. Documento novo nasce com 1. */
+  versao: number
+}
+
+
 // --- Entidades ---
+
+/**
+ * Projeto. Dono da lista de praia, temporada, cercado e da equipe.
+ *
+ * `fuso` e nome IANA do fuso do projeto (revisao F11). `null` significa fuso nao confirmado: o app
+ * nao converte e sinaliza, em vez de assumir um deslocamento. Nao existe fuso padrao fixo no codigo.
+ */
+export interface Projeto {
+  id: string
+  nome: string
+  sigla: string
+  ativo: boolean
+  fuso: string | null
+  criadoEm: string
+  versao: number
+}
 
 export interface Localizacao {
   praiaId: string | null
@@ -66,19 +105,23 @@ export interface Localizacao {
   capturadoEm: Instante | null
 }
 
-export interface Ocorrencia {
+export interface Ocorrencia extends Trilha {
   id: string
   projetoId: string
   temporadaId: string | null
   responsavelId: string | null
+  /** N_REGISTRO (p. 1). Dono unico deste numero; texto, preserva zeros iniciais. */
   numeroRegistro: string | null
   tipoOcorrencia: TipoOcorrencia
   tipoRegistro: 'REPRODUTIVO' | 'NAO_REPRODUTIVO'
   verificacaoPraiaRealizada: boolean | null
+  /** Animal observado e resposta explicita; nao inferir a partir de hora conhecida. */
+  flagrante: boolean | null
   dataOcorrencia: DataCampo | null
   instanteOcorrencia: Instante | null
   horaOcorrencia: string | null
   noiteReferencia: DataCampo | null
+  /** Imutavel (DOMAIN_RULES.md 4.1). Tambem e a localizacao original do ninho criado por CD. */
   localOrigem: Localizacao
   marcasEncontradas: string | null
   marcasColocadas: string | null
@@ -94,32 +137,34 @@ export interface Ocorrencia {
   observacoes: string | null
   /** Preenchido somente quando tipoOcorrencia = 'CD'. Ver DOMAIN_RULES.md secao 2.1. */
   ninhoId: string | null
-  criadoPor: string | null
-  criadoEm: string
-  atualizadoEm: string
 }
 
-export interface Transferencia {
+export interface Transferencia extends Trilha {
   id: string
+  projetoId: string
   ninhoId: string
   destino: 'CERCADO' | 'PRAIA'
+  /** Escopo da reserva de N_NINHO (DATA_MODEL.md 6). `null` enquanto o cercado nao estiver cadastrado. */
+  cercadoId: string | null
   localDestino: Localizacao
   dataTransferencia: DataCampo | null
   instanteTransferencia: Instante | null
   noiteReferencia: DataCampo | null
+  /** TEMP_TRANSF (p. 4). Dono unico deste campo. */
   tempoTransferencia: TempoTransferencia | null
-  /** OVOS_TRANS (p. 3-5): contagem de campo, nao digitada livremente. */
+  /** OVOS_TRANS (p. 4): contagem observada, informada pela equipe; nao e calculo derivado. */
   ovosTransferencia: number | null
-  /** N_NINHO (p. 3): numero do ninho dentro do cercado. Texto, preserva zeros. */
+  /** N_NINHO (p. 4): numero do ninho dentro do cercado. Texto, preserva zeros. Dono unico. */
   numeroNinhoCercado: string | null
+  /** Ordem confirmada na sincronizacao; desempate da posicao atual (DATA_MODEL.md 5.1). */
+  sequencia: number | null
   responsavelId: string | null
   observacoes: string | null
-  criadoPor: string | null
-  criadoEm: string
 }
 
-export interface Visita {
+export interface Visita extends Trilha {
   id: string
+  projetoId: string
   ninhoId: string
   dataVisita: DataCampo
   noiteReferencia: DataCampo | null
@@ -128,13 +173,12 @@ export interface Visita {
   condicao: string | null
   eventos: ('predacao' | 'mare' | 'perda_marcacao' | 'outro')[]
   observacoes: string | null
-  criadoPor: string | null
-  criadoEm: string
 }
 
-/** Ato de eclosao e abertura, com os dados biologicos da escavacao (p. 3-5). */
-export interface Abertura {
+/** Ato de eclosao e abertura, com os dados biologicos da escavacao (p. 4-6). */
+export interface Abertura extends Trilha {
   id: string
+  projetoId: string
   ninhoId: string
   dataEclosao: DataCampo | null
   instanteEclosao: Instante | null
@@ -147,34 +191,32 @@ export interface Abertura {
   vivos: number | null
   natimortos: number | null
   ovosNaoEclodidos: number | null
+  /** OVOS_FURAD (p. 4). Dono unico: a mesma contagem nao e registrada tambem na transferencia. */
   ovosFurados: number | null
-  /** NAO_VIAVEIS (p. 3): so para DC e fora de ovosTotais. */
+  /** NAO_VIAVEIS (p. 4): so para DC e fora de ovosTotais. */
   naoViaveis: number | null
   responsavelId: string | null
   observacoes: string | null
-  criadoPor: string | null
-  criadoEm: string
 }
 
-export interface Ninho {
+/**
+ * Ninho. Existe apenas para CD e nao guarda copia de campo da ocorrencia (DATA_MODEL.md 3).
+ *
+ * `numeroRegistro`, a localizacao original, `tempoTransferencia` e `numeroNinhoCercado` sao lidos
+ * por juncao com `ocorrenciaId` ou derivados do historico de transferencias (`agregado.ts`).
+ */
+export interface Ninho extends Trilha {
   id: string
   projetoId: string
   temporadaId: string | null
   /** Chave de ligacao com a ocorrencia CD que o originou. */
   ocorrenciaId: string
   codigoInterno: string
-  numeroRegistro: string | null
-  /** Imutavel (DOMAIN_RULES.md secao 4.1). */
-  localOrigem: Localizacao
   situacao: Situacao | null
-  tempoTransferencia: TempoTransferencia | null
   historicoNinho: HistoricoNinho | null
-  numeroNinhoCercado: string | null
   /** (projeto) Condicao da excecao do OVOS_TOT. Ver DUVIDA 04. */
   problemaIncubacao: boolean | null
-  estadoAcompanhamento: EstadoAcompanhamento
   /** Estado de tela. Nunca substitui SITUACAO nem HIST_NINHO (DOMAIN_RULES.md 1.3). */
-  criadoPor: string | null
-  criadoEm: string
-  atualizadoEm: string
+  estadoAcompanhamento: EstadoAcompanhamento
 }
+

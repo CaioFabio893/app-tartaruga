@@ -5,7 +5,7 @@
  * referencia da regra. A interface usa isso para exibir e bloquear; o Firestore nao depende
  * delas (ver SECURITY.md: regra de acesso e coisa separada).
  */
-import { PALAVRAS_CHAVE, type PalavraChave } from './tipos.ts'
+import { PALAVRAS_CHAVE, TIPOS_OCORRENCIA, SITUACOES, HISTORICOS_NINHO, RESPOSTA_TUMORES, type PalavraChave } from './tipos.ts'
 
 export interface Problema {
   campo: string
@@ -36,54 +36,66 @@ export function ocorrenciaCriaNinho(tipoOcorrencia: string): boolean {
 
 /**
  * SD so e valido depois de verificada a praia e descartada a interrupcao por perturbacao externa
- * (p. 2). Sem esse registro, o app nao aceita SD.
+ * (p. 3). Sem esse registro, o app nao aceita SD.
  */
 export function validarTipoOcorrencia(tipoOcorrencia: string, verificacaoPraiaRealizada: boolean | null): Problema[] {
+  if (!(TIPOS_OCORRENCIA as readonly string[]).includes(tipoOcorrencia)) {
+    return [erro('tipo_ocorrencia', 'Codigo de ocorrencia invalido.', 'FIELD_DICTIONARY.md 6')]
+  }
   if (tipoOcorrencia === 'SD' && verificacaoPraiaRealizada !== true) {
     return [
       erro(
         'verificacao_praia_realizada',
         'Sem Desova exige a verificacao da praia registrada, descartada a possibilidade de ' +
           'processo interrompido (que seria PI).',
-        'DOMAIN_RULES.md 2.2 (p. 2)',
+        'DOMAIN_RULES.md 2.2 (p. 3)',
       ),
     ]
   }
   return []
 }
 
-/** SITUACAO e sempre preenchida quando TIPO_OCORR = CD (p. 2). */
+/** SITUACAO e sempre preenchida quando TIPO_OCORR = CD (p. 3). */
 export function validarSituacao(tipoOcorrencia: string, situacao: string | null): Problema[] {
+  if (situacao !== null && (!(SITUACOES as readonly string[]).includes(situacao) || tipoOcorrencia !== 'CD')) {
+    return [erro('situacao', 'SITUACAO exige CD e codigo I, T ou P.', 'DOMAIN_RULES.md 2.5')]
+  }
   if (tipoOcorrencia === 'CD' && !situacao) {
-    return [erro('situacao', 'SITUACAO e sempre preenchida quando TIPO_OCORR = CD.', 'DOMAIN_RULES.md 2.5 (p. 2)')]
+    return [erro('situacao', 'SITUACAO e sempre preenchida quando TIPO_OCORR = CD.', 'DOMAIN_RULES.md 2.5 (p. 3)')]
   }
   return []
 }
 
-/** HIST_NINHO so existe com CD (p. 4) e sempre com complemento em OBS (p. 4). */
+/** HIST_NINHO so existe com CD (p. 5) e sempre com complemento em OBS (p. 5). */
 export function validarHistoricoNinho(
   tipoOcorrencia: string,
   historicoNinho: string | null,
   observacoes: string | null,
 ): Problema[] {
   const problemas: Problema[] = []
+  if (historicoNinho !== null && !(HISTORICOS_NINHO as readonly string[]).includes(historicoNinho)) {
+    problemas.push(erro('historico_ninho', 'Codigo de historico invalido.', 'FIELD_DICTIONARY.md 6'))
+  }
   if (historicoNinho && tipoOcorrencia !== 'CD') {
     problemas.push(
-      erro('historico_ninho', 'HIST_NINHO so e preenchido quando TIPO_OCORR = CD.', 'DOMAIN_RULES.md 6.3 (p. 4)'),
+      erro('historico_ninho', 'HIST_NINHO so e preenchido quando TIPO_OCORR = CD.', 'DOMAIN_RULES.md 6.3 (p. 5)'),
     )
   }
-  if (historicoNinho === 'OT' && !observacoes?.trim()) {
+  if (historicoNinho && !observacoes?.trim()) {
     problemas.push(
-      erro('observacoes', 'HIST_NINHO = OT exige explicar a interferencia em OBS.', 'DOMAIN_RULES.md 6.3 (p. 4)'),
+      erro('observacoes', 'HIST_NINHO exige complemento em OBS.', 'DOMAIN_RULES.md 6.3 (p. 5)'),
     )
   }
   return problemas
 }
 
-/** TUMORES e sempre preenchido no flagrante; fora dele e null, o que difere de 'I' (p. 2). */
+/** TUMORES e sempre preenchido no flagrante; fora dele e null, o que difere de 'I' (p. 3). */
 export function validarTumores(flagrante: boolean, tumores: string | null): Problema[] {
+  if (tumores !== null && !(RESPOSTA_TUMORES as readonly string[]).includes(tumores)) {
+    return [erro('tumores', 'Codigo de tumores invalido: use S, N ou I.', 'FIELD_DICTIONARY.md 6')]
+  }
   if (flagrante && !tumores) {
-    return [erro('tumores', 'No flagrante, TUMORES e sempre preenchido (S, N ou I).', 'DOMAIN_RULES.md 6.2 (p. 2)')]
+    return [erro('tumores', 'No flagrante, TUMORES e sempre preenchido (S, N ou I).', 'DOMAIN_RULES.md 6.2 (p. 3)')]
   }
   return []
 }
@@ -96,15 +108,15 @@ export function validarHoraOcorrencia(horaOcorrencia: string | null, flagrante: 
   return []
 }
 
-/** Evidencia de pesca verdadeira exige o tipo (p. 2). */
+/** Evidencia de pesca verdadeira exige o tipo (p. 3). */
 export function validarEvidenciaPesca(evidencia: boolean | null, tipoEvidencia: string | null): Problema[] {
   if (evidencia === true && !tipoEvidencia?.trim()) {
-    return [erro('tipo_evidencia', 'Com evidencia de interacao com pesca, citar o TIPO_EVIDENCIA.', 'DOMAIN_RULES.md 6.5 (p. 2)')]
+    return [erro('tipo_evidencia', 'Com evidencia de interacao com pesca, citar o TIPO_EVIDENCIA.', 'DOMAIN_RULES.md 6.5 (p. 3)')]
   }
   return []
 }
 
-/** Palavras-chave precisam vir da lista fechada, sem acento e no singular (p. 1-2 e p. 5-6). */
+/** Palavras-chave precisam vir da lista fechada, sem acento e no singular (p. 1-2 e p. 6-7). */
 export function validarPalavrasChave(valores: readonly string[]): Problema[] {
   const permitidas = new Set<string>(PALAVRAS_CHAVE)
   const problemas: Problema[] = []
@@ -114,7 +126,7 @@ export function validarPalavrasChave(valores: readonly string[]): Problema[] {
         erro(
           'palavras_chave',
           `Palavra-chave "${valor}" nao esta na lista do manual. Use o termo exato, sem acento e no singular.`,
-          'DOMAIN_RULES.md 6.6 (p. 5-6)',
+          'DOMAIN_RULES.md 6.6 (p. 6-7)',
         ),
       )
     }
@@ -123,7 +135,7 @@ export function validarPalavrasChave(valores: readonly string[]): Problema[] {
 }
 
 /**
- * TIPO_EVIDENCIA e codigo do SITAMAR (p. 2). Se nao estiver cadastrado, o app nao inventa:
+ * TIPO_EVIDENCIA e codigo do SITAMAR (p. 3). Se nao estiver cadastrado, o app nao inventa:
  * avisa que falta o cadastro.
  */
 export function validarTipoEvidencia(valor: string | null, codigosConhecidos: readonly string[]): Problema[] {
@@ -154,14 +166,14 @@ export function validarPraia(praiaCodigo: string | null, codigosConhecidos: read
   return []
 }
 
-/** Localizacao original e imutavel; destino de cercado exige N_NINHO (p. 3, DOMAIN_RULES.md 4.7). */
+/** Localizacao original e imutavel; destino de cercado exige N_NINHO (p. 4, DOMAIN_RULES.md 4.7). */
 export function validarTransferencia(destino: 'CERCADO' | 'PRAIA', numeroNinhoCercado: string | null): Problema[] {
   if (destino === 'CERCADO' && !numeroNinhoCercado?.trim()) {
     return [
       erro(
         'numero_ninho_cercado',
         'Transferencia para o cercado exige o numero do ninho no cercado (N_NINHO).',
-        'DOMAIN_RULES.md 4.7 (p. 3)',
+        'DOMAIN_RULES.md 4.7 (p. 4)',
       ),
     ]
   }
@@ -170,7 +182,7 @@ export function validarTransferencia(destino: 'CERCADO' | 'PRAIA', numeroNinhoCe
       erro(
         'numero_ninho_cercado',
         'N_NINHO so se aplica a transferencia para o cercado.',
-        'DOMAIN_RULES.md 4.4 (p. 3)',
+        'DOMAIN_RULES.md 4.4 (p. 4)',
       ),
     ]
   }

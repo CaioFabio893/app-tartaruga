@@ -1,5 +1,37 @@
 # Changelog
 
+## 2026-10-02 — E02–E09 locais e R03 (Codex)
+
+- Relatório A4/JSON/CSV por período e três critérios, snapshot único, históricos, valores ausentes e ambiguidades explícitas; exemplo em output/pdf.
+- Interface Claude preservada; cadastro de treino, transferências, visitas e abertura/correções auditadas no IndexedDB. Conflito entre abas preserva formulário.
+- Login e confirmação online de membro/projeto; regras deny-default testadas no emulador. Escritas oficiais ainda negadas.
+- GPS independente, esquema SVG/lista, cache estático de produção e atualização sem descarte de rascunho. Sem serviços externos de mapa.
+- R03: contagens/datas/estrutura local validadas, UTC zero aceito, totais ausentes null, média percentual sem fonte removida, CSV vazio completo e identificação em continuação de ficha.
+- Override transitivo grpc corrigido; auditoria sem vulnerabilidades. Evidências em TESTING.md; escopos em tasks. Nenhum deploy/push ou sincronização oficial entregue.
+
+## 2026-10-02 - R02 Fechamento de contratos (OpenCode)
+
+- Contratos F07-F12 de REVISAO-BASE.md fechados como domínio puro (sem Firebase): dono único de campo,
+  consulta por projeção (`OCORR`/`ECLOS`/`ABERT`), fila offline idempotente (`operationId`/`baseVersion`),
+  reserva numérica determinística, fuso IANA + offset observado, posição atual derivada e abertura de
+  referência sem escolha silenciosa.
+- Novos módulos: `src/domain/{consultas,persistencia,fila,reserva,fuso,agregado}.ts` e testes
+  `tests/{consultas,persistencia,fila,reserva,agregado,fuso}.test.ts` + `tests/auxiliares-agregado.ts`.
+- `src/domain/tipos.ts` ajustado (Trilha/Projeto/auditoria, dono único); `DATA_MODEL.md` atualizado; `DOMAIN_RULES.md` com páginas normalizadas; `OFFLINE/SECURITY/ARCHITECTURE/REPORT_SPEC/
+  TESTING` alinhados aos contratos.
+- React 19 movido para `dependencies` (F12); PWA/emuladores declarados pendentes, não entregues.
+- Decisões D-012 e D-013; D-002 corrigida para v2.
+- 133 testes, typecheck e build passando. Detalhes em docs/tasks/R02-contratos.md.
+
+## 2026-10-02 - R01 Revisão inicial Codex
+
+- Calendário/horários/offsets e corte 09h corrigidos; cálculos rejeitam contagens inconsistentes (v2).
+- Códigos e observações validados; flagrante explícito no tipo.
+- Correções do manual, configuração sem Storage, Claude como autor visual, README.
+- Transcrição do usuário salva e indexada para consulta por campo.
+- 63 testes e build/typecheck passando. Achados F07-F12 encaminhados a R02.
+- Detalhes em docs/reviews/REVISAO-BASE.md e docs/tasks/R01-revisao-base.md.
+
 ## 2026-10-02 — E01 Base, contratos e domínio
 - Extração do manual (7 páginas) para `FIELD_DICTIONARY.md` e `DOMAIN_RULES.md`, com página de origem em
   toda afirmação. 8 dúvidas científicas rastreadas (§8).

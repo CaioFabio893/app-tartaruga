@@ -21,3 +21,4 @@ Thumbs.db
 
 tmp/ocr/*.txt
 tmp/pdfs/*.png
+tmp/pdfs/e02/

@@ -1,41 +1,27 @@
-# Status
+# Status — 02/10/2026
 
-Estado atual: **base e contratos prontos + domínio com testes verdes**.
+Codex assumiu a implementação a pedido do usuário após a cota do OpenCode. Execução sequencial; visual Claude preservado. R01/R02 existentes foram mantidas.
 
-## Resumo
+## Entrega atual
 
-- Manual de 7 páginas extraído para `docs/FIELD_DICTIONARY.md` e `docs/DOMAIN_RULES.md`. 8 dúvidas pendentes
-  de decisão da coordenação científica (não de implementação).
-- Contratos definidos: `DATA_MODEL.md`, `ARCHITECTURE.md`, `PRODUCT.md`, `REPORT_SPEC.md`.
-- Domínio: datas (noite de monitoramento), cálculos derivados versionados (OVOS_TOT, PCT_VIVOS, TEMP_INCUB),
-  validações condicionais. **40 testes de comportamento** passando.
-- Scaffold Vite + TypeScript strict + React mínimo + PWA (manifest + service worker placeholder). **Build** OK.
+- E02: relatório de treino por período inclusivo e critério OCORR/ECLOS/ABERT; prévia e PDF/JSON/CSV usam o mesmo snapshot. A4 paginado, históricos, null distinto de zero, derivados v2. Layout ainda é proposta para a equipe.
+- E03: interface responsiva com ninhos, ocorrências, mapa, relatórios e acesso.
+- E04-base: login email/senha e confirmação online de membro/projeto; regras negam por padrão. Escritas de campo e projeções no Firestore continuam bloqueadas.
+- E05–E07 local: somente CD cria ninho; transferência, visita, eclosão/abertura e correção auditada. IndexedDB atômico, revisão por operação, conflito entre abas rejeitado com formulário preservado; backup integral JSON.
+- E08 local: GPS por botão, entrada manual e esquema SVG com lista equivalente. Não é mapa de navegação. Testado por simulação, sem capturar localização real.
+- E09-cache: interface de produção e geração PDF disponíveis offline após cache instalado; atualização aguarda sem descartar formulário.
+- R03: validação de datas/contagens/estrutura local, UTC zero observado aceito, totais ausentes null, nenhuma média percentual inventada, CSV vazio com cabeçalho e avisos de ambiguidade.
 
-## Tarefa ativa
+**Modo de treino:** não cadastrar fichas oficiais. Salvo no aparelho não significa sincronizado. Todos os relatórios desta interface são parciais/demonstrativos, mesmo com login. O login não transforma dados de treino em dados do projeto.
 
-**E01 – Base e Contratos (em revisão)**. Próximo passo: iniciar **Prompt 3** (Codex) com
-`docs/handoffs/ATUAL.md` pronto, ou avançar para a implementação das telas (Prompt 4) apenas depois que o
-Codex aprovar ou registrar os achados.
+## Verificação
 
-## Bloqueios
+Resultados e reprodução em [TESTING.md](TESTING.md). Revisão final concluída: `npx vitest run` (165 passaram / 7 ignorados sem emulador), `npx tsc --noEmit` e `npx vite build` passaram após acabamento do PDF. Sete testes de regras passaram separadamente no emulador demo. Amostra final A4 renderizada e revisada.
 
-- `DOMAIN_RULES.md §8`: 8 dúvidas científicas. Não devemos escolher silenciosamente (regra AGENTS.md). São
-  principais: D01 (unidades de biometria), D02 (sobreposição de `TEMP_TRANSF` D/E), D04 (exceção de OVOS_TOT),
-  D08 (ninho a partir da eclosão).
-- Provedor de tiles/mapa e lista oficial de praias/códigos de tipo de evidência dependem de SITAMAR
-  (D07).
-- Primeiro usuário com papel `coordenacao` exige procedimento administrativo confiável (`SECURITY.md`).
+Já executado: 165 testes passaram e 7 testes de regras foram ignorados na suíte sem emulador; os mesmos 7 passaram separadamente no Firestore Standard local demo. Tipos/build passaram; npm audit retornou zero vulnerabilidades. Edge validou downloads, celular 390px, IndexedDB, conflito entre abas, login local, GPS simulado, uso offline e atualização com rascunho preservado. Nenhum Firebase de produção ou aparelho físico validado.
 
 ## Próximo passo
 
-1. Codex: executar **Prompt 3** (revisão inicial concentrada) usando `docs/handoffs/ATUAL.md`.
-2. Após revisão: receber `docs/reviews/REVISAO-BASE.md` e converter achados em tarefas no `BACKLOG.md`,
-   executando **Prompt 4** tarefa por tarefa (execução sequencial, um dono por arquivo).
+Integrar dados oficiais E05–E07/E09/E10: transações, operação idempotente, reservas, projeções e confirmação de sincronização antes de liberar escritas. Resolver perguntas em [DECISIONS.md](DECISIONS.md) e [DOMAIN_RULES.md §8](DOMAIN_RULES.md). Validar exemplar PDF e protocolo GPS em campo. Não publicar nesta etapa.
 
-## Comandos para verificar
-
-```powershell
-npx vitest run
-npx tsc --noEmit
-npx vite build
-```
+Escopos e arquivos: [BACKLOG.md](BACKLOG.md), [tarefas](tasks/). Continuação: [handoffs/ATUAL.md](handoffs/ATUAL.md).
