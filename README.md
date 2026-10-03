@@ -18,20 +18,16 @@ Authentication** e regras de segurança testáveis.
 
 ## Telas do aplicativo
 
-Telas do design aprovado, reproduzidas localmente a partir do protótipo em [`design-preview/`](design-preview/)
-— **dados fictícios**, nada é salvo.
+Telas do aplicativo real em execução no **modo de treino** — dados fictícios, nada é salvo e nada é
+sincronizado. O fluxo oficial usa login e Cloud Firestore.
 
-<p align="center">
-  <img src="docs/images/preview-ninhos.png" width="49%" alt="Lista de ninhos com estados de acompanhamento">
-  <img src="docs/images/preview-ficha.png" width="49%" alt="Ficha do ninho por etapas de campo">
-</p>
-<p align="center">
-  <img src="docs/images/preview-relatorios.png" width="49%" alt="Relatórios com prévia, resumo e proposta A4">
-  <img src="docs/images/preview-mapa.png" width="49%" alt="Mapa com ninhos e localização atual">
-</p>
-<p align="center">
-  <img src="docs/images/preview-mobile.png" width="24%" alt="Layout responsivo em celular">
-</p>
+![Relatórios: filtros, prévia com métricas e tabela do mesmo conjunto exportado](docs/images/app-relatorios.png)
+
+![Ninhos: lista por ano com estado de acompanhamento](docs/images/app-ninhos.png)
+
+![Mapa: posições derivadas do histórico sobre OpenStreetMap, com lista equivalente](docs/images/app-mapa.png)
+
+![Ficha do ninho: organização anual, localização original/atual e ficha de campo completa](docs/images/app-ficha.png)
 
 ## Sobre o projeto
 

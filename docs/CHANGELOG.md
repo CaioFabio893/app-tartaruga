@@ -2,7 +2,7 @@
 
 ## 2026-10-03 — P10 apresentação para recrutadores
 - README reestruturado com visão geral, telas, destaques técnicos, diagramas Mermaid, stack, execução, testes, segurança e custo; conteúdo interno preservado por resumo + link. Nenhum código/regra/dado alterado.
-- Licença MIT e CI do GitHub Actions (tipos, build e testes). Screenshots fictícias do protótipo em `docs/images/`.
+- Licença MIT e CI do GitHub Actions (tipos, build e testes). Screenshots do app real em modo de treino (dados fictícios) em `docs/images/`; descrição, site e tópicos definidos no GitHub.
 - Validação sem emulador: 191 testes passaram/23 ignorados (214 no total), tipos e build OK; `npm ci --dry-run` consistente. Detalhes/limitações em `tasks/P10-portfolio-readme.md`.
 
 ## 2026-10-03 — P09 rótulo pelo registro
