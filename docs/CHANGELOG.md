@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-10-03 — P10 apresentação para recrutadores
+- README reestruturado com visão geral, telas, destaques técnicos, diagramas Mermaid, stack, execução, testes, segurança e custo; conteúdo interno preservado por resumo + link. Nenhum código/regra/dado alterado.
+- Licença MIT e CI do GitHub Actions (tipos, build e testes). Screenshots fictícias do protótipo em `docs/images/`.
+- Validação sem emulador: 191 testes passaram/23 ignorados (214 no total), tipos e build OK; `npm ci --dry-run` consistente. Detalhes/limitações em `tasks/P10-portfolio-readme.md`.
+
 ## 2026-10-03 — P09 rótulo pelo registro
 - Identificação compartilhada prioriza N_REGISTRO com zeros, mantendo identificadores persistidos e Excel. Decisão D-026.
 - 213 testes passaram/1 opt-in ignorado no emulador; tipos/build passaram. Hosting e bundle HTTP confirmados; tarefa P09 documenta reprodução/limites.

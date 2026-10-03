@@ -1,5 +1,7 @@
 # Status — 03/10/2026
 
+P10 concluída, dono OpenCode: repositório apresentável para recrutadores. README reestruturado (visão geral, telas, destaques técnicos, diagramas, testes, segurança), licença MIT, CI do GitHub Actions e screenshots fictícias do protótipo; nenhum código/regra/dado alterado. Validação sem emulador: 191 passaram/23 ignorados; tipos/build OK. [Entrega](tasks/P10-portfolio-readme.md).
+
 P09 concluída/publicada, dono Codex: rótulos priorizam número de registro (ex. Ninho 002), sem alterar identificadores/dados. 213 testes passaram/1 opt-in ignorado; tipos/build passaram; Hosting/bundle HTTP 200 confirmados. [Entrega](tasks/P09-rotulo-registro.md).
 
 P08 implementada e publicada, dono Codex: Excel em colunas, ano/número na nuvem, previsão informada, medição manual de armazenamento e retenção protegida somente coordenação. 212 testes passaram/1 opt-in ignorado; tipos/build/audit passaram. Regras/Hosting e bundle HTTP 200 confirmados. Nenhuma ficha real alterada ou apagada. Interface pública com dados confirmados e download XLSX do build local conferidos; push do commit efbb2f7 confirmado no GitHub; escopo/evidências/limitações em [P08](tasks/P08-gestao-excel.md).
