@@ -49,3 +49,7 @@ Três índices P03 por projeto+data+ID; índice R02 anterior preservado para nã
   funciona sem mapa.
 
 P04: base OpenStreetMap online gratuita com atribuição visível, política https://operations.osmfoundation.org/policies/tiles/ . Leaflet local instalado, sem prefetch/cache em massa ou endpoint Google pago. Indisponibilidade/offline mantém lista de coordenadas; não há promessa de mapa offline ou cobertura contínua.
+
+## Estimativa de armazenamento P05
+
+Faixa aproximada de planejamento: 2.000–3.000 ninhos acumulados com histórico comparável à amostra, não garantia. Fonte/metodologia e limites em [P05](tasks/P05-capacidade-spark.md); uso diário/carga inicial pode limitar antes do espaço. Nenhuma alteração de índice ou plano realizada.

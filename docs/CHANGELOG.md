@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-10-03 — P05 estimativa Spark
+
+- Consulta somente leitura e estimativa de documentos/índices da amostra atual. Faixa de planejamento 2.000–3.000 ninhos semelhantes acumulados, sem garantia; histórico e cotas diárias podem limitar antes. Metodologia/ressalvas em tasks/P05-capacidade-spark.md. Sem alteração de código/dados/plano, sem novos testes ou publicação.
+
 ## 2026-10-03 — P04 mapa/GPS/relatório
 
 - Leaflet/OpenStreetMap online com atribuição, posição atual coerente e margem de erro disponível. GPS no destino e captura de melhor leitura cancelável; precisão não garantida. Casco em cm conforme confirmação do usuário.
