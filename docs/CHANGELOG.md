@@ -5,6 +5,7 @@
 - Revisão documentada, neutralização de fórmula CSV em listas sem alterar JSON/números; escape do ID externo no protótipo. Headers Hosting reforçados, publicados e confirmados por HTTP.
 - `.gitignore` ampliado para env/credenciais/exportações/intermediários; histórico pesquisado sem segredos identificados nos padrões. README detalha construção, funcionalidades, configuração, testes e limites atuais.
 - 201 testes passaram/1 opt-in ignorado no emulador; tipos/build e npm audit zero. Dados reais e visual preservados. Riscos residuais e entrega Git em tasks/P06-seguranca-github.md/reviews/P06-seguranca.md.
+- Push inicial ao origin/master passou; SHA do commit de entrega `f04819c` confirmado no remoto, sem force push.
 
 ## 2026-10-03 — P05 estimativa Spark
 

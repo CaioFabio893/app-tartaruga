@@ -22,7 +22,7 @@ Revisão em [P06-seguranca](../reviews/P06-seguranca.md). Alterados `.gitignore`
 - Histórico anterior pesquisado por padrões de senha/chaves/tokens: nenhum segredo identificado nos padrões. Env/credenciais/PDFs reais não rastreados; demonstrações fictícias mantidas. `.env.example` não ignorado; env/credenciais/exportações/backups/intermediários ignorados.
 - `firebase deploy --only hosting --project monitoramento-de-tartarugas --account SUA_CONTA_AUTORIZADA --non-interactive`: passou na conta autorizada da sessão. HTTP 200 do site e bundle atual; CSP/frame DENY/nosniff/Permissions/Referrer confirmados por resposta HTTP. Cache imutável dos assets preservado. Sem deploy de regras ou escrita de dados reais.
 
-Entrega Git: origin `https://github.com/CaioFabio893/app-tartaruga.git`, branch `master`, sem force push. Verificar `git ls-remote origin refs/heads/master` contra HEAD antes de entregar; hash disponível no histórico Git, sem duplicação circular dentro do próprio commit.
+Entrega Git confirmada: `git push -u origin master` passou, sem force push, em `https://github.com/CaioFabio893/app-tartaruga.git`. HEAD e `git ls-remote origin refs/heads/master` coincidiram em `f04819c` após o envio do código/README/histórico. Este registro posterior documenta a confirmação; nenhum arquivo local sensível foi enviado.
 
 ## Limitações e próximo passo
 
