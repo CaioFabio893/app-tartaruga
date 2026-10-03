@@ -29,7 +29,10 @@ Fora do escopo: alterar `src/`, `tests/`, `firestore.rules`, dados, regras cient
 
 ## Limitações e próximo passo
 
-- Screenshots são do protótipo, não do app autenticado; legenda deixa isso explícito.
+- Screenshots são do protótipo, não do app autenticado; legenda deixa isso explícito. Capturas refeitas em
+  viewport desktop 1280px (2× para nitidez) e mobile 390px, página inteira onde havia corte. A navegação
+  mobile do protótipo tem overflow (`nav a` sem `min-width:0`); a captura corrige isso só na renderização,
+  sem alterar `design-preview/`.
 - CI roda sem emulador: não valida regras do Firestore. Endurecer com emulador é melhoria futura.
 - Metadados do GitHub (descrição, site e tópicos) exigem token/gh CLI; documentados ao usuário para
   preenchimento manual.
