@@ -22,6 +22,8 @@ Já executado: 165 testes passaram e 7 testes de regras foram ignorados na suít
 
 ## Próximo passo
 
-Integrar dados oficiais E05–E07/E09/E10: transações, operação idempotente, reservas, projeções e confirmação de sincronização antes de liberar escritas. Resolver perguntas em [DECISIONS.md](DECISIONS.md) e [DOMAIN_RULES.md §8](DOMAIN_RULES.md). Validar exemplar PDF e protocolo GPS em campo. Não publicar nesta etapa.
+P01: treino publicado a pedido do usuário em https://monitoramento-de-tartarugas.web.app, projeto separado Spark. Somente Hosting; nenhuma integração oficial liberada. Escopo/evidências/limite do teste de download em [P01](tasks/P01-hosting-treino.md). Dados permanecem por aparelho/navegador/origem; localhost não migra automaticamente.
+
+Integrar dados oficiais E05–E07/E09/E10: transações, operação idempotente, reservas, projeções e confirmação de sincronização antes de liberar escritas. Resolver perguntas em [DECISIONS.md](DECISIONS.md) e [DOMAIN_RULES.md §8](DOMAIN_RULES.md). Validar exemplar PDF e protocolo GPS em campo. Não publicar integração oficial sem validação.
 
 Escopos e arquivos: [BACKLOG.md](BACKLOG.md), [tarefas](tasks/). Continuação: [handoffs/ATUAL.md](handoffs/ATUAL.md).

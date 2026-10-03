@@ -32,6 +32,8 @@ Nunca commitar `.env.local`. Não usar chaves de serviço no cliente.
 
 ## Estado implementado e emulador
 
+Treino publicado em Hosting Spark no projeto monitoramento-de-tartarugas: https://monitoramento-de-tartarugas.web.app . Sem Firebase web config oficial no build; publicação do site não habilita sincronização. Regras/índices não foram publicados (P01 somente Hosting).
+
 Login email/senha sem auto-cadastro; confirmação de membro/projeto usa leitura de servidor, não cache. Regras/índices/firebase.json existem. Campo/projeções negam escrita até integração oficial. Treino é separado do login e não é enviado ao Firebase.
 
 Para testar sem conta real, Java e Firebase CLI instalados:

@@ -1,6 +1,14 @@
-# Deploy (procedimento futuro; não executar nesta entrega)
+# Publicação
 
-Integração oficial E05–E10 e validação científica ainda pendentes. Nenhuma publicação efetuada; firebase.json atual configura emuladores, não Hosting. Este roteiro é preparação e exige autorização de publicação.
+Em 02/10/2026, usuário autorizou publicar o treino. Site: https://monitoramento-de-tartarugas.web.app . Projeto monitoramento-de-tartarugas, Spark confirmado no console. Somente Hosting publicado; sem deploy de regras/índices, sem banco/Auth oficial configurado no build. Integração oficial E05–E10 e validação científica continuam pendentes.
+
+Republicação do treino, após testes/tipos/build, com a conta autorizada:
+
+```powershell
+firebase deploy --only hosting --project monitoramento-de-tartarugas --account adrianoartoniomareante@gmail.com --non-interactive
+```
+
+Hosting serve dist, exclui *.map e arquivos ocultos, preserva cache versionado e SPA. Dados de localhost não são migrados: cada origem/navegador mantém seu treino local. Faça exportação JSON; restauração/importação ainda não existe. Procedimentos abaixo são para integração oficial futura, não etapas realizadas nesta publicação.
 
 Pré-requisitos: projeto Firebase criado, Auth (e-mail/senha) habilitado, Firestore criado (modo produção),
 Hosting configurado. **Não ativar Blaze**.

@@ -19,5 +19,6 @@ Tarefas com dono, escopo e critérios de aceite. Uma tarefa ativa por vez, camin
 | E10 | Relatório oficial | Codex | pendente | alta | E07/E09 oficiais | src/report/* e tarefa a definir | Fonte real completa e sincronização confirmada antes de definitivo |
 | E11 | Revisão/entrega oficial | Codex | pendente | alta | E01–E10 | docs/* e tarefa a definir | Validar fluxo oficial, índices reais e ciência antes de publicar |
 | R03 | Integridade final local | Codex | concluída | alta | E09-cache | [R03](tasks/R03-integridade-final.md) | Evidências finais, docs coerentes e commit local |
+| P01 | Hosting do treino | Codex | publicado; download IAB não confirmado | alta | R03 | [P01](tasks/P01-hosting-treino.md) | Hosting Spark HTTPS; sem alterar backend/outro app |
 
 E01/R01/R02 descrevem entregas históricas. Escopos locais não equivalem à conclusão oficial de E04–E10. Execução sequencial; criar tarefa antes de novos caminhos. Próximo trabalho: integração oficial, conforme STATUS.md.

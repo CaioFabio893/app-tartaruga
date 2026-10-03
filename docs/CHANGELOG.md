@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-10-02 — P01 Hosting do treino
+
+- Configuração estática Hosting, SPA/cache do SW e exclusão de source maps; publicação solicitada pelo usuário, em outra conta Google.
+- 165 testes passaram/7 ignorados sem emulador; tipos/build passaram. Usuário concluiu login adicional, Hosting publicado no projeto monitoramento-de-tartarugas (Spark). Prévia/cache e HTTP validados; download IAB não confirmado (ver tarefa). Backend/sincronização continuam pendentes.
+
 ## 2026-10-02 — E02–E09 locais e R03 (Codex)
 
 - Relatório A4/JSON/CSV por período e três critérios, snapshot único, históricos, valores ausentes e ambiguidades explícitas; exemplo em output/pdf.
