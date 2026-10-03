@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-10-03 — P08 Excel e gestão anual
+- Excel `.xlsx` com um ninho por coluna e números na primeira linha; todos os campos/históricos e continuação de texto, sem fórmulas de usuário. Amostra independente: 364 rótulos/valores presentes.
+- Ano/número operacional auditado e reservado online; mapa/lista por ano, legado em Sem ano definido. Previsão informada com antecedência, sem prazo científico presumido.
+- Armazenamento com medição manual e aviso; coordenação pode reter por ano/período após PDF/JSON e confirmação. Regras/revisões/recibos protegem; conta campo e fichas reais preservadas. Decisões D-023–D-025.
+- 212 testes passaram/1 opt-in ignorado no emulador; tipos/build/audit passaram. Regras/Hosting publicados e bundle HTTP confirmado. Detalhes/limitações em tarefa P08.
+
+
 ## 2026-10-03 — P07 PDF completo em menos páginas
 
 - Campos curtos em pares, textos longos com largura inteira, margens/espaçamentos menores e paginação por espaço disponível. Um único relatório completo; nenhuma regra/dado/JSON/CSV alterado.

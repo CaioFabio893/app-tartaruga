@@ -1,5 +1,7 @@
 # Status — 03/10/2026
 
+P08 implementada e publicada, dono Codex: Excel em colunas, ano/número na nuvem, previsão informada, medição manual de armazenamento e retenção protegida somente coordenação. 212 testes passaram/1 opt-in ignorado; tipos/build/audit passaram. Regras/Hosting e bundle HTTP 200 confirmados. Nenhuma ficha real alterada ou apagada. Interface com backend real e download XLSX conferidos; Git em fechamento; escopo/evidências/limitações em [P08](tasks/P08-gestao-excel.md).
+
 P07 concluída e publicada: PDF completo em menos páginas, dono Codex. Amostra fictícia 19 → 11 páginas; 728 rótulos/valores presentes, sem caracteres fora das margens; páginas renderizadas conferidas. JSON/CSV e domínio preservados. Final: 202 testes passaram/1 opt-in ignorado com emulador pronto; tipos/build passaram. Hosting publicado e bundle atual confirmado via HTTP. Push origin/master passou; SHA `f0ffab1` conferido no remoto antes deste registro documental. Escopo/evidências/limitações em [P07](tasks/P07-pdf-menos-paginas.md).
 
 P06 concluída, dono Codex: segurança/README/GitHub, [entrega](tasks/P06-seguranca-github.md). CSV corrigido após autorização de escopo; headers/protótipo/ignore/README revisados. Validação: 201 passaram/1 opt-in ignorado; tipos/build passaram; npm audit zero. Hosting publicado e HTTP/cabeçalhos confirmados. Push origin/master passou, SHA remoto conferido (`f04819c`, antes deste registro documental). Riscos residuais: senha simples compartilhada e dados locais após logout; ver [revisão](reviews/P06-seguranca.md).

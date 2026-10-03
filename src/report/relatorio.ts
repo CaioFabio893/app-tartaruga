@@ -12,6 +12,8 @@ export interface FonteRelatorio {
 }
 export interface RegistroRelatorio { ficha: FichaNinho; linha: LinhaResumo; origem: EntradaFicha }
 export interface Relatorio {
+  organizacao?: Record<string,import('../domain/gestao').GestaoNinho>
+  anoOrganizacao?: string
   nomesResponsaveis?: Record<string,string>
   projetoNome: string
   consulta: EntradaConsulta

@@ -1,4 +1,5 @@
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from 'pdf-lib'
+import {rotuloNinho} from '../domain/gestao'
 import {totalObservado,type Relatorio} from './relatorio'
 import {dataLegivel,legivel,secoesFicha,valorCampo,type LinhaCampo} from './apresentacao'
 
@@ -15,6 +16,7 @@ export async function gerarPDF(r:Relatorio):Promise<Uint8Array> {
  function texto(s:string,size=9,font=normal){for(const l of quebrar(s,font,size,largura)){if(y<70)nova();pagina.drawText(l,{x:margem,y,size,font,color:cor});y-=12}y-=3}
  function titulo(s:string){if(y<125)nova();y-=5;pagina.drawRectangle({x:margem,y:y-6,width:largura,height:21,color:suave});pagina.drawText(seguro(s,bold),{x:margem+7,y,size:10,font:bold,color:cor});y-=24}
  function linha([rotulo,valor]:LinhaCampo){const esq=quebrar(rotulo,bold,8.5,184),dir=quebrar(valor,normal,9,largura-206),n=Math.max(esq.length,dir.length);let i=0;while(i<n){if(y<88)nova();const quant=Math.min(n-i,Math.floor((y-66)/12));if(alternar)pagina.drawRectangle({x:margem,y:y-quant*12+3,width:largura,height:quant*12+4,color:suave});for(let j=0;j<quant;j++){if(esq[i+j])pagina.drawText(esq[i+j]!,{x:margem+6,y:y-j*12,size:8.5,font:bold,color:cor});if(dir[i+j])pagina.drawText(dir[i+j]!,{x:margem+200,y:y-j*12,size:9,font:normal,color:cor})}i+=quant;y-=quant*12+5}alternar=!alternar}
+ const nomeNinho=(n:Relatorio['registros'][number])=>rotuloNinho(n,r.organizacao?.[n.ficha.ninho.id])+(r.organizacao?.[n.ficha.ninho.id]?' (ano '+r.organizacao[n.ficha.ninho.id]!.ano+')':'')
  const coluna=(largura-12)/2
  function compacto(l:LinhaCampo){return quebrar(l[0]+': '+l[1],normal,9,coluna-12).length<=4}
  function par(a:LinhaCampo,b?:LinhaCampo){
@@ -36,8 +38,8 @@ export async function gerarPDF(r:Relatorio):Promise<Uint8Array> {
  for(const k of Object.keys(rotulos) as (keyof typeof rotulos)[]){const t=totalObservado(r,k);linha([rotulos[k],legivel(t.valor)+' ('+t.observados+' ninhos com valor; '+t.ausentes+' sem valor)'+(t.motivo?'. '+t.motivo:'')])}
  titulo('Resumo de todos os ninhos incluídos')
  if(!r.registros.length)texto('Nenhum ninho atende à abrangência e aos filtros selecionados.')
- for(const [i,n] of r.registros.entries()){texto((i+1)+'. Registro '+legivel(n.linha.numeroRegistro)+' - '+n.ficha.ninho.codigoInterno,10,bold);texto('Data de referência: '+dataLegivel(n.linha.dataCriterio)+'; praia original: '+legivel(n.linha.praiaCodigo)+'; espécie: '+valorCampo('ESPECIE',n.linha.especieCodigo)+'; conservação: '+valorCampo('SITUACAO',n.linha.situacao)+'; histórico: '+valorCampo('HIST_NINHO',n.linha.historicoNinho)+'; vivos: '+legivel(n.linha.vivos)+'; total de ovos: '+legivel(n.linha.ovosTotais)+'; vivos (%): '+legivel(n.linha.percentualVivos))}
- for(const [i,n] of r.registros.entries()){contexto='Ficha '+(i+1)+' de '+r.registros.length+' - Registro '+legivel(n.linha.numeroRegistro)+' - '+n.ficha.ninho.codigoInterno;if(y<230)nova();else{y-=12;texto(contexto,10,bold)}for(const s of secoesFicha(n,r.nomesResponsaveis)){titulo(s.titulo);campos(s.linhas)}}
+ for(const [i,n] of r.registros.entries()){texto((i+1)+'. Registro '+legivel(n.linha.numeroRegistro)+' - '+nomeNinho(n),10,bold);texto('Data de referência: '+dataLegivel(n.linha.dataCriterio)+'; praia original: '+legivel(n.linha.praiaCodigo)+'; espécie: '+valorCampo('ESPECIE',n.linha.especieCodigo)+'; conservação: '+valorCampo('SITUACAO',n.linha.situacao)+'; histórico: '+valorCampo('HIST_NINHO',n.linha.historicoNinho)+'; vivos: '+legivel(n.linha.vivos)+'; total de ovos: '+legivel(n.linha.ovosTotais)+'; vivos (%): '+legivel(n.linha.percentualVivos))}
+ for(const [i,n] of r.registros.entries()){contexto='Ficha '+(i+1)+' de '+r.registros.length+' - Registro '+legivel(n.linha.numeroRegistro)+' - '+nomeNinho(n);if(y<230)nova();else{y-=12;texto(contexto,10,bold)}const g=r.organizacao?.[n.ficha.ninho.id];if(g){titulo('Organização do projeto');campos([['Ano de organização',String(g.ano)],['Número anual',g.numero],['Previsão da equipe',dataLegivel(g.previsao_eclosao)],['Origem da previsão',legivel(g.nota_previsao)],['Avisar antes (dias)',String(g.antecedencia_dias)]])}for(const s of secoesFicha(n,r.nomesResponsaveis)){titulo(s.titulo);campos(s.linhas)}}
  if(substituidos.size){contexto='Conferência de caracteres';nova();titulo('Caracteres não disponíveis na fonte local');texto(substituidos.size+' caracteres distintos foram substituídos por ?. O JSON mantém o texto integral. Confira a cópia JSON para esses trechos.')}
  const pages=doc.getPages();for(const [i,p] of pages.entries()){p.drawLine({start:{x:margem,y:45},end:{x:595.28-margem,y:45},thickness:.5,color:rgb(.7,.7,.7)});p.drawText('Página '+(i+1)+' de '+pages.length+' | '+(r.consulta.todos?'Todos os ninhos':dataLegivel(r.consulta.inicio)+' a '+dataLegivel(r.consulta.fim))+' | '+(r.parcial?'Parcial':'Confirmado'),{x:margem,y:29,size:8,font:normal,color:cor})}
  return doc.save()

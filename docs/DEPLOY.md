@@ -91,3 +91,6 @@ Publicado somente Hosting após validação: comando de P03 com --only hosting p
 ## P06 — segurança publicada em 03/10/2026
 
 Deploy somente Hosting passou após 201 testes/tipos/build. Publicados CSV protegido também para listas e cabeçalhos DENY/frame-ancestors, nosniff, base-uri/object-src, referência e permissões. HTTP 200 e cabeçalhos do site/bundle conferidos; geolocalização própria permitida. CSP parcial; não substitui regras/Auth. Regras e dados reais preservados. Ver revisão/tarefa P06. Comandos usam `SUA_CONTA_AUTORIZADA` para não repetir e-mail pessoal em documentação pública; substituir pela conta correta da sessão, nunca por senha/token.
+
+## P08 — publicada em 03/10/2026
+Regras/Hosting publicados após 212 testes/tipos/build/audit. Comando da tarefa P08, apenas firestore:rules,hosting, projeto correto/conta autorizada; nenhum upgrade/plano/novo serviço. HTTP 200 de raiz e `/assets/index-CiUrIPWV.js` confirmados. Conta real campo preservada; coordenação de retenção exige provisionamento autorizado fora do cliente (D-025), não promoção automática. Não houve escrita/exclusão de fichas de teste em produção.

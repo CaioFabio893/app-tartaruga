@@ -23,6 +23,7 @@ Tarefas com dono, escopo e critérios de aceite. Uma tarefa ativa por vez, camin
 | P02 | Login de teste externo | Codex | absorvida por P03 | alta | P01 | [P02](tasks/P02-login-teste.md) | Esclarecimento: produto compartilhado em nuvem |
 | P05 | Estimativa de capacidade Spark | Codex | concluída (análise) | média | P04 | [P05](tasks/P05-capacidade-spark.md) | Consulta só leitura, cálculo explícito e limites documentados |
 | P06 | Segurança, README e GitHub | Codex | concluída; Hosting/GitHub confirmados | alta | P05 | [P06](tasks/P06-seguranca-github.md) | Revisão rastreável, ignore, README atual, testes e SHA remoto conferido |
+| P08 | Excel em colunas e gestão anual | Codex | concluída e publicada | alta | P07 | [P08](tasks/P08-gestao-excel.md) | XLSX integral, reservas anuais, filtro mapa, previsão informada, exclusão segura e validação |
 | P07 | PDF completo em menos páginas | Codex | concluída e publicada | alta | P06 | [P07](tasks/P07-pdf-menos-paginas.md) | 19 → 11 páginas na mesma amostra, conteúdo integral e validação/publicação documentadas |
 | P04 | Mapa, GPS e relatório legível | Codex | concluída e publicada | alta | P03 | [P04](tasks/P04-mapa-gps-relatorio.md) | Mapa-base, captura destino, cm e PDF completo legível |
 | P03 | Integração compartilhada em nuvem | Codex | concluída e publicada | alta | P01/R03 | [P03](tasks/P03-integracao-nuvem.md) | Transações, Auth, regras, idempotência, conflitos e relatórios reais |

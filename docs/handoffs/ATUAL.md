@@ -1,9 +1,9 @@
-# Continuação — Codex / P07
+# Continuação — Codex / P08
 
-03/10/2026. P07 concluída/publicada: `src/report/pdf.ts` reorganiza campos curtos em pares e longos com largura inteira, preservando todas as informações. Amostra fictícia em output/pdf/relatorio-p07-demonstracao.pdf: 19 → 11 páginas; 728 rótulos/valores conferidos por tests/report/p07-verificar.py. 202 testes passaram/1 opt-in ignorado, tipos/build passaram; Hosting/bundle HTTP confirmados. Push origin/master passou; SHA f0ffab1 conferido antes deste registro documental.
+03/10/2026. P08 concluída/publicada: Excel em colunas, organização por ano com reserva/auditoria, mapa por ano, previsão informada e aviso, medição manual de armazenamento, retenção definitiva com backups somente coordenação. 212 testes passaram/1 opt-in ignorado; tipos/build/audit passaram. Regras/Hosting publicados, bundle index-CiUrIPWV.js HTTP 200 confirmado. Interface local com Firebase real e download XLSX conferidos; nenhuma ficha real alterada/excluída, nenhum papel promovido. GitHub em fechamento, registrar SHA após push.
 
-Ler STATUS/BACKLOG/tasks/P07-pdf-menos-paginas.md para escopo, reprodução e falha inicial ambiental com emulador desligado. Nenhuma regra/timeout/ficha real alterada. Emulador demo foi iniciado para validação final; não é prova de escrita em produção.
+Ler STATUS/BACKLOG/tasks/P08-gestao-excel.md. Amostra fictícia output/xlsx/ninhos-p08-demonstracao.xlsx; Python leitor verificou 364 rótulos/valores, 5 ninhos em colunas, zeros/textos seguros. Artifact Tool import/inspect passou; render PNG falhou exit 1, revisão no Excel cabe ao usuário. P07 PDF completo preservado.
 
-Próximo passo: coordenação conferir PDF no aparelho. Organização anual/Excel/previsão/exclusão exigem tarefas próprias; não implementadas em P07. Margem de erro GPS depende do hardware; fórmula v2 preservada e perguntas científicas seguem DECISIONS/DOMAIN_RULES.
+Revisão do usuário: organizar fichas antigas em Sem ano definido; conferir Excel/PDF e campos/localizações, mapa somente ano escolhido, previsão informada e antecedência. Uso da nuvem exige medição manual da coordenação; aviso não é monitoramento automático. Adriano campo não exclui nem informa uso; D-025 pergunta quem terá coordenação, não auto-promover. Retenção irreversível com PDF/JSON conferidos, hashes não provam arquivo guardado, auditoria/reservas permanecem. Sem restauração automática; conflito/interrupção exige nova seleção/backup.
 
-Segurança anterior em revisão P06: senha simples compartilhada, cópia local após logout e App Check ausente são riscos residuais. Nunca registrar senha/credencial nem apagar rascunhos silenciosamente.
+Senha compartilhada simples, cópia local após logout e App Check ausente continuam riscos P06. Nunca registrar credenciais. Execução sequencial, não refatorar fora do escopo.

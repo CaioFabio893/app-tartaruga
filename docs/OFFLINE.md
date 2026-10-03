@@ -33,3 +33,5 @@ na transação real de `src/data/nuvem.ts` (escopo provisório em DATA_MODEL §6
 ## Exportação
 
 PDF/JSON/CSV gerados offline recebem a marca `parcial: true`. O app avisa isso claramente antes do download.
+## P08 — organização e retenção
+IndexedDB `ninhos-gestao-v1` separado por usuário/projeto (treino em chave própria). Cópia offline sempre não confirmada. Reserva anual real/alteração operacional exige online e ficha confirmada; não entra na fila científica nem promete sequência offline. Prévia confirmada confere revisões científicas e de gestão antes/depois; cache ou falha não vira confirmado. XLSX offline também parcial. Exclusão exige online/sincronização, backups e ausência de pendência local; mudança depois do backup bloqueia a remoção. Ver [P08](tasks/P08-gestao-excel.md).

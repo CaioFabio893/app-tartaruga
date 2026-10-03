@@ -17,7 +17,7 @@ Conta publicada única: adriano, papel campo. Testes de papéis adicionais perte
 | --- | --- | --- | --- |
 | `consulta` | sim | não | não |
 | `campo` | sim | ocorrências, ninhos, transferências, visitas, aberturas (seu projeto) | não |
-| `coordenacao` | sim | tudo no projeto | gerencia membros, projetos, temporadas, praias; exclusão lógica |
+| `coordenacao` | sim | tudo no projeto | outros membros campo/consulta; retenção definitiva protegida P08 |
 
 Um usuário só acessa um projeto se existir `projetos/{projetoId}/membros/{uid}` com `ativo = true`.
 
@@ -26,7 +26,7 @@ Um usuário só acessa um projeto se existir `projetos/{projetoId}/membros/{uid}
 - Negar por padrão.
 - Toda regra filtra por `projeto_id` (isolamento entre projetos).
 - Só membros ativos leem/escrevem seu projeto.
-- Papel administrativo (`coordenacao`) é necessário para criar/alterar membros e para exclusão lógica.
+- Papel administrativo (`coordenacao`) é necessário para criar/alterar membros e para retenção P08.
 - Cliente **não** autoatribui papel. O primeiro membro com papel `coordenacao` precisa ser criado por
   procedimento administrativo confiável (fora do app cliente), documentado em `DEPLOY.md`.
 - IDs de documento **não** são segredos.
@@ -53,3 +53,7 @@ não vaza entre projetos. Registrar resultados em `TESTING.md`.
 [P06](reviews/P06-seguranca.md) registra escopo, achados e resultados. Cabeçalhos Hosting reforçados, protótipo com escape contextual e exportação CSV neutraliza também listas com prefixo de fórmula; JSON preserva a origem. `.gitignore` cobre env/credenciais/exportações locais, sem substituir revisão do histórico.
 
 A senha simples da conta compartilhada continua sendo risco: fortalecê-la administrativamente, sem registrar seu valor no Git. Autoria compartilhada não identifica cada pessoa. Logout encerra Auth, mas não apaga IndexedDB/pendências; aparelho ou navegador compartilhado expõe cópia local. Exportar pendências antes de limpar dados do site. Revogação de membro no servidor não apaga automaticamente dados já recebidos. App Check não configurado; cotas Spark podem ser abusadas por acesso autorizado comprometido. A CSP publicada restringe enquadramento/base/objetos, não é uma política completa de origens de script.
+
+## P08 — metadados e retenção
+Gestão anual: campo/coordenacao, schema estrito, reserva/counter/revisão e auditoria nova com pré-imagem; consulta não escreve. Respostas sem membro, projeto cruzado, escrita direta e versão antiga negadas. Medição de armazenamento somente coordenação.
+Exclusão definitiva excepcional de retenção (D-025), não correção: somente coordenação, recibo novo + revisão global na mesma transação, projeto ativo, vínculo/path por ninho. Recibo valida hashes, escopo/motivo/autor/hora; não representa prova de arquivo guardado. Campo continua sem exclusão mesmo adulterando o papel do cliente. Auditoria, reservas, contadores e membros não podem ser apagados por essa operação. Conta real não foi promovida. Testes de exclusão só no emulador.

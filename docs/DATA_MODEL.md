@@ -266,10 +266,8 @@ A carga inicial da interface ainda lê o projeto inteiro, paginado, e os histór
 
 ## 8. Exclusão e retenção
 
-- Registros de campo não são apagados; correções criam nova versão e mantêm a pré-imagem em `operacoes`.
-- Valores derivados podem ser recalculados a qualquer momento e são apagados com segurança, exceto quando
-  materializados com `derivados_formula_versao`.
-- Visitas e transferências só recebem acréscimo, nunca edição destrutiva.
-- "Apagar ninho" é exclusão lógica (`excluido_em`, `excluido_por`), restrita a `coordenacao`, e o documento
-  continua no banco para auditoria. A projeção correspondente recebe `excluido_em` e sai das consultas por
-  período.
+Correções de campo preservam versão e pré-imagem; visitas/transferências mantêm história. Retenção definitiva excepcional P08 segue D-025: coordenação, backups PDF/JSON e confirmação, recibo imutável, revisão e validação de versões. Remove ocorrência CD/ninho/projeção/metadados e filhos selecionados; preserva auditoria/reservas/contadores. Não usar remoção para corrigir dados e não afirmar liberação de todo o espaço.
+
+## 9. Organização operacional P08
+`gestao/{ninhoUUID}` guarda ano explícito, número anual textual, previsão informada/justificativa, antecedência operacional e versão/autor/operação/timestamp. `gestao_anos/{ano}` guarda último contador; `gestao_numeros/{ano-numero}` reserva imutável; `gestao_auditoria/{opUUID}` preserva pré-imagem. `gestao_estado/revisao` protege consultas consistentes e conflitos. Não integra campos científicos nem muda origem/datas.
+`gestao_config/painel`: medição manual de uso MiB/data, versão e autoria; não medição automática. `exclusoes/{UUID}`: recibo imutável da retenção, um ninho/transação, paths e hashes. Revisão global científica e de gestão incrementadas na exclusão; backups incluem dados brutos selecionados. Ver D-023–D-025 e tarefa P08.
