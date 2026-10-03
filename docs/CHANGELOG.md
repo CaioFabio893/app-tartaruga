@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-03 — P06 segurança/README/GitHub
+
+- Revisão documentada, neutralização de fórmula CSV em listas sem alterar JSON/números; escape do ID externo no protótipo. Headers Hosting reforçados, publicados e confirmados por HTTP.
+- `.gitignore` ampliado para env/credenciais/exportações/intermediários; histórico pesquisado sem segredos identificados nos padrões. README detalha construção, funcionalidades, configuração, testes e limites atuais.
+- 201 testes passaram/1 opt-in ignorado no emulador; tipos/build e npm audit zero. Dados reais e visual preservados. Riscos residuais e entrega Git em tasks/P06-seguranca-github.md/reviews/P06-seguranca.md.
+
 ## 2026-10-03 — P05 estimativa Spark
 
 - Consulta somente leitura e estimativa de documentos/índices da amostra atual. Faixa de planejamento 2.000–3.000 ninhos semelhantes acumulados, sem garantia; histórico e cotas diárias podem limitar antes. Metodologia/ressalvas em tasks/P05-capacidade-spark.md. Sem alteração de código/dados/plano, sem novos testes ou publicação.

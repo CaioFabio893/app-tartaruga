@@ -1,6 +1,8 @@
 // Protótipo visual. Dados FICTÍCIOS. Nada é salvo; sem Firebase.
 const NAV=[['ninhos','Ninhos'],['mapa','Mapa'],['ocorrencias','Ocorrências'],['relatorios','Relatórios'],['cadastros','Cadastros']];
 const ic=n=>`<svg class="icone" aria-hidden="true"><use href="#i-${n}"/></svg>`;
+// O fragmento da URL é entrada externa, mesmo neste protótipo sem dados reais.
+const textoHTML=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const NINHOS=[
 {id:'FICT-N-001',reg:'0001',praia:'Praia Fictícia A',km:'km 2,4',sp:'Espécie exemplo 1',st:['info','Em acompanhamento','◔'],eclosao:null,vazios:true},
 {id:'FICT-N-002',reg:'0002',praia:'Praia Fictícia B',km:'km 0,8',sp:'Não identificada',st:['ok','Aberto','✔'],eclosao:'2026-03-02',vivos:82,natimortos:0,naoEcl:6},
@@ -40,7 +42,7 @@ cadastros:()=>`<h1>Cadastros</h1><div class="cartao">Projetos · Temporadas · R
 function render(){const [,rota,id]=location.hash.split('/');const app=document.getElementById('app');
 document.querySelector('nav').innerHTML=NAV.map(([k,t])=>`<a href="#/${k}" ${(rota===k||(rota==='ficha'&&k==='ninhos')||(!rota&&k==='ninhos'))?'aria-current="page"':''}>${ic(k)}${t}</a>`).join('');
 const av='<div class="aviso-proto">Protótipo com dados fictícios. Nada é salvo.</div>';
-if(rota==='ficha'){app.innerHTML=`${av}<p><a href="#/ninhos">← Ninhos</a></p><h1>Ficha ${id}</h1><div class="abas" role="tablist">${ETAPAS.map((e,i)=>`<button role="tab" aria-selected="${i==0}" data-et="${i}">${e}</button>`).join('')}</div><div id="et" class="cartao"></div>`;
+if(rota==='ficha'){app.innerHTML=`${av}<p><a href="#/ninhos">← Ninhos</a></p><h1>Ficha ${textoHTML(id)}</h1><div class="abas" role="tablist">${ETAPAS.map((e,i)=>`<button role="tab" aria-selected="${i==0}" data-et="${i}">${e}</button>`).join('')}</div><div id="et" class="cartao"></div>`;
 const m=i=>{document.getElementById('et').innerHTML=etapa(i);app.querySelectorAll('[data-et]').forEach(b=>b.setAttribute('aria-selected',b.dataset.et==i));
 const o=document.getElementById('obs');if(o)o.onchange=()=>document.getElementById('animal').hidden=o.value!=='Sim';
 const g=document.getElementById('man');if(g)g.onchange=()=>{document.getElementById('transf').hidden=g.selectedIndex===0;document.getElementById('cerc').hidden=g.selectedIndex!==1;document.getElementById('atual').textContent=g.selectedIndex?'destino informado abaixo':'igual à original'}};

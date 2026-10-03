@@ -5,7 +5,14 @@
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**", "**/*.map"],
     "rewrites": [{ "source": "**", "destination": "/index.html" }],
     "headers": [
-      { "source": "**", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] },
+      { "source": "**", "headers": [
+        { "key": "Cache-Control", "value": "no-cache" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "Content-Security-Policy", "value": "base-uri 'self'; object-src 'none'; frame-ancestors 'none'" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=(self)" }
+      ] },
       { "source": "/assets/**", "headers": [{ "key": "Cache-Control", "value": "public,max-age=31536000,immutable" }] },
       { "source": "/sw.js", "headers": [{ "key": "Cache-Control", "value": "no-cache,no-store,must-revalidate" }] }
     ]

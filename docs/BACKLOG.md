@@ -22,6 +22,7 @@ Tarefas com dono, escopo e critérios de aceite. Uma tarefa ativa por vez, camin
 | P01 | Hosting do treino | Codex | publicado; download IAB não confirmado | alta | R03 | [P01](tasks/P01-hosting-treino.md) | Hosting Spark HTTPS; sem alterar backend/outro app |
 | P02 | Login de teste externo | Codex | absorvida por P03 | alta | P01 | [P02](tasks/P02-login-teste.md) | Esclarecimento: produto compartilhado em nuvem |
 | P05 | Estimativa de capacidade Spark | Codex | concluída (análise) | média | P04 | [P05](tasks/P05-capacidade-spark.md) | Consulta só leitura, cálculo explícito e limites documentados |
+| P06 | Segurança, README e GitHub | Codex | técnica concluída, entrega GitHub | alta | P05 | [P06](tasks/P06-seguranca-github.md) | Revisão rastreável, ignore, README atual, testes e SHA remoto conferido antes da entrega |
 | P04 | Mapa, GPS e relatório legível | Codex | concluída e publicada | alta | P03 | [P04](tasks/P04-mapa-gps-relatorio.md) | Mapa-base, captura destino, cm e PDF completo legível |
 | P03 | Integração compartilhada em nuvem | Codex | concluída e publicada | alta | P01/R03 | [P03](tasks/P03-integracao-nuvem.md) | Transações, Auth, regras, idempotência, conflitos e relatórios reais |
 

@@ -1,5 +1,7 @@
 # Status — 03/10/2026
 
+P06 concluída tecnicamente, dono Codex: segurança/README/GitHub, [entrega](tasks/P06-seguranca-github.md). CSV corrigido após autorização de escopo; headers/protótipo/ignore/README revisados. Validação: 201 passaram/1 opt-in ignorado; tipos/build passaram; npm audit zero. Hosting publicado e HTTP/cabeçalhos confirmados. Entrega GitHub em origin/master, conferir SHA remoto antes da resposta final. Riscos residuais: senha simples compartilhada e dados locais após logout; ver [revisão](reviews/P06-seguranca.md).
+
 P04 concluída e publicada: mapa geográfico, GPS no destino, cm e relatório completo legível, dono Codex. Escopo em [P04](tasks/P04-mapa-gps-relatorio.md). P03: aplicativo compartilhado em nuvem autorizado pelo usuário, com **um único acesso adriano**. Dono Codex, execução sequencial; visual Claude preservado. Build final P03 e regras publicados e conferidos; endereço https://monitoramento-de-tartarugas.web.app .
 
 ## Implementado

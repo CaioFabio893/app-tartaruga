@@ -153,7 +153,7 @@ export function gerarJSON(relatorio: Relatorio): string {
 /** Prefixo apostrofo para texto potencialmente executável; JSON conserva o original. */
 function celulaCSV(valor: unknown): string {
   let v = valor == null ? '' : Array.isArray(valor) ? valor.join(' | ') : String(valor)
-  if (typeof valor === 'string' && /^[\s\u0000-\u001f]*[=+@-]/.test(v)) v = "'" + v
+  if ((typeof valor === 'string' || Array.isArray(valor)) && /^[\s\u0000-\u001f]*[=+@-]/.test(v)) v = "'" + v
   return '"' + v.replaceAll('"', '""') + '"'
 }
 

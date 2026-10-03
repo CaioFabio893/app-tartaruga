@@ -47,3 +47,9 @@ esse papel.
 Usar emulador do Firebase para testar: acesso negado sem membro, membro de outro projeto não vê dados,
 tentativa de autoelevação de papel é rejeitada, botão escondido não substitui regra, e projeção de consulta
 não vaza entre projetos. Registrar resultados em `TESTING.md`.
+
+## Revisão P06 e riscos residuais
+
+[P06](reviews/P06-seguranca.md) registra escopo, achados e resultados. Cabeçalhos Hosting reforçados, protótipo com escape contextual e exportação CSV neutraliza também listas com prefixo de fórmula; JSON preserva a origem. `.gitignore` cobre env/credenciais/exportações locais, sem substituir revisão do histórico.
+
+A senha simples da conta compartilhada continua sendo risco: fortalecê-la administrativamente, sem registrar seu valor no Git. Autoria compartilhada não identifica cada pessoa. Logout encerra Auth, mas não apaga IndexedDB/pendências; aparelho ou navegador compartilhado expõe cópia local. Exportar pendências antes de limpar dados do site. Revogação de membro no servidor não apaga automaticamente dados já recebidos. App Check não configurado; cotas Spark podem ser abusadas por acesso autorizado comprometido. A CSP publicada restringe enquadramento/base/objetos, não é uma política completa de origens de script.

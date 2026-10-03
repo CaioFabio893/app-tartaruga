@@ -5,8 +5,8 @@ P03 autorizada pelo usuário: integração real em monitoramento-de-tartarugas, 
 Não usar treino-louise. Todos comandos reais precisam projeto e conta explícitos:
 
 ```powershell
-firebase deploy --only firestore:rules,firestore:indexes --project monitoramento-de-tartarugas --account adrianoartoniomareante@gmail.com --non-interactive
-firebase deploy --only hosting --project monitoramento-de-tartarugas --account adrianoartoniomareante@gmail.com --non-interactive
+firebase deploy --only firestore:rules,firestore:indexes --project monitoramento-de-tartarugas --account SUA_CONTA_AUTORIZADA --non-interactive
+firebase deploy --only hosting --project monitoramento-de-tartarugas --account SUA_CONTA_AUTORIZADA --non-interactive
 ```
 
 Hosting serve dist, SPA/cache e exclui *.map/arquivos ocultos. Config pública em .env.local ignorado; VITE_PROJETO_ID=monitoramento-de-tartarugas e VITE_LOGIN_DOMINIO=monitoramento-de-tartarugas.web.app habilitam a entrada única. Nunca commitar senha, token ou credencial administrativa. Fechar abas antigas e reabrir após atualização do worker, quando não houver formulário em edição.
@@ -82,8 +82,12 @@ Sem Blaze. Uso gratuito sujeito às cotas do Spark. PDF é gerado no cliente (n�
 
 ## P03 publicada — 02/10/2026
 
-`firebase deploy --only firestore:rules,hosting --project monitoramento-de-tartarugas --account adrianoartoniomareante@gmail.com --non-interactive` passou. URL https://monitoramento-de-tartarugas.web.app conferida: login único adriano, dados confirmados no servidor, prévia ECLOS vazia e exportações disponíveis; sem erros capturados. Senha não registrada em arquivos. Área técnica validacao-p03-interna e membro ativo=false via API (HTTP 200); documentos e auditoria preservados. Prova real/índices e limites em TESTING/STATUS.
+`firebase deploy --only firestore:rules,hosting --project monitoramento-de-tartarugas --account SUA_CONTA_AUTORIZADA --non-interactive` passou. URL https://monitoramento-de-tartarugas.web.app conferida: login único adriano, dados confirmados no servidor, prévia ECLOS vazia e exportações disponíveis; sem erros capturados. Senha não registrada em arquivos. Área técnica validacao-p03-interna e membro ativo=false via API (HTTP 200); documentos e auditoria preservados. Prova real/índices e limites em TESTING/STATUS.
 
 ## P04 — publicada em 03/10/2026
 
 Publicado somente Hosting após validação: comando de P03 com --only hosting passou. Regras e dados existentes preservados; consulta/download e mapa conferidos na URL pública. Mapa-base depende de conexão OpenStreetMap, sem cobrança Google/Blaze; GPS requer HTTPS e permissão do aparelho. Se houver atualização de cache pendente, salvar formulários, fechar abas e reabrir.
+
+## P06 — segurança publicada em 03/10/2026
+
+Deploy somente Hosting passou após 201 testes/tipos/build. Publicados CSV protegido também para listas e cabeçalhos DENY/frame-ancestors, nosniff, base-uri/object-src, referência e permissões. HTTP 200 e cabeçalhos do site/bundle conferidos; geolocalização própria permitida. CSP parcial; não substitui regras/Auth. Regras e dados reais preservados. Ver revisão/tarefa P06. Comandos usam `SUA_CONTA_AUTORIZADA` para não repetir e-mail pessoal em documentação pública; substituir pela conta correta da sessão, nunca por senha/token.

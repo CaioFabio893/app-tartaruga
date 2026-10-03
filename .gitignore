@@ -4,12 +4,33 @@ dist-ssr/
 coverage/
 
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
 
 .firebase/
 firebase-debug.log*
 firestore-debug.log*
+ui-debug.log*
+*.log
+*.tsbuildinfo
+.cache/
+playwright-report/
+test-results/
+firebase-export-*/
+firestore_export/
+auth_export/
+
+# Credenciais administrativas nunca pertencem ao repositório.
+*service-account*.json
+*serviceAccount*.json
+*firebase-adminsdk*.json
+*.pem
+*.key
+credentials.json
+
+# Exportações reais de campo e cópias pessoais: usar estas pastas locais.
+backups/
+exports/
 
 .DS_Store
 Thumbs.db
@@ -19,6 +40,5 @@ Thumbs.db
 .vscode/*
 !.vscode/extensions.json
 
-tmp/ocr/*.txt
-tmp/pdfs/*.png
-tmp/pdfs/e02/
+tmp/ocr/
+tmp/pdfs/

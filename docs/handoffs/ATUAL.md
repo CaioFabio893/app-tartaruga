@@ -1,7 +1,7 @@
-# Continuação — Codex / P04
+# Continuação — Codex / P06
 
-03/10/2026. P04 concluída e publicada no mesmo Hosting, dados/regras preservados. Ler STATUS, BACKLOG e tasks/P04-mapa-gps-relatorio.md. Fontes: report/apresentacao+pdf, mapa/MapaCoordenadas, services/gps e Formulario GPSDestino; relatório todos em consultas/nuvem/App. D-022 registra cm confirmado pelo usuário e mapas/GPS.
+03/10/2026. P06: revisão segurança, README atual e ignore ampliado; CSV também protege listas contra fórmulas, protótipo escapa ID externo. Headers e CSV publicados no mesmo Hosting, regras/dados reais preservados. Escopo/ampliação autorizada/evidências em tasks/P06-seguranca-github.md e reviews/P06-seguranca.md. Ler STATUS/BACKLOG antes da próxima tarefa.
 
-195 testes passaram/1 opt-in ignorado; tipos/build passaram. PDF fictício 19 páginas renderizadas, PDF público de cinco páginas baixado/conferido; mapa geográfico e consulta confirmada de 1 ninho observados sem erros. Nenhum registro real modificado. Commit local, sem push.
+201 testes passaram/1 prova de produção opt-in ignorada; tipos/build e auditoria npm zero. Hosting e cabeçalhos HTTP confirmados. Envio autorizado ao origin/master; SHA deve coincidir com remoto antes da entrega. Nunca registrar senha nem credencial administrativa. Riscos residuais: senha simples compartilhada, cópia local após logout e App Check ausente.
 
 Próxima ação: testar precisão GPS em aparelho ao ar livre e conferir relatório com equipe. Margem de erro depende do hardware; base online não tem cache em massa. Perguntas científicas anteriores permanecem, fórmula v2 preservada. Não converter medidas ou datums antigos silenciosamente.
