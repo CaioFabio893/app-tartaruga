@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-10-03 — P09 rótulo pelo registro
+- Identificação compartilhada prioriza N_REGISTRO com zeros, mantendo identificadores persistidos e Excel. Decisão D-026.
+- 213 testes passaram/1 opt-in ignorado no emulador; tipos/build passaram. Hosting e bundle HTTP confirmados; tarefa P09 documenta reprodução/limites.
+
+
 ## 2026-10-03 — P08 Excel e gestão anual
 - Excel `.xlsx` com um ninho por coluna e números na primeira linha; todos os campos/históricos e continuação de texto, sem fórmulas de usuário. Amostra independente: 364 rótulos/valores presentes.
 - Ano/número operacional auditado e reservado online; mapa/lista por ano, legado em Sem ano definido. Previsão informada com antecedência, sem prazo científico presumido.

@@ -21,7 +21,7 @@ export function validarEntradaGestao(e:EntradaGestao) {
   if(!Number.isInteger(e.antecedencia_dias)||e.antecedencia_dias<0||e.antecedencia_dias>60)throw new Error('Aviso deve ser configurado entre 0 e 60 dias antes da previsão.')
   if(e.previsao_eclosao!==null&&!e.nota_previsao?.trim())throw new Error('Informe a origem da previsão fornecida pela equipe.')
 }
-export function rotuloNinho(r:RegistroRelatorio,g?:GestaoNinho){return g?'Ninho '+g.numero:r.ficha.ninho.codigoInterno}
+export function rotuloNinho(r:RegistroRelatorio,g?:GestaoNinho){const registro=r.origem.ocorrencia?.numeroRegistro;return registro?.trim()?'Ninho '+registro:g?'Ninho '+g.numero:r.ficha.ninho.codigoInterno}
 export function diaDoAparelho(d=new Date()){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
 export function alertaPrevisao(r:RegistroRelatorio,g:GestaoNinho|undefined,hoje:string):{dias:number;texto:string}|null {
   if(!g?.previsao_eclosao||r.origem.aberturas.some(a=>a.dataEclosao!==null||a.dataAbertura!==null))return null
