@@ -1,6 +1,6 @@
 # Status — 03/10/2026
 
-P08 implementada e publicada, dono Codex: Excel em colunas, ano/número na nuvem, previsão informada, medição manual de armazenamento e retenção protegida somente coordenação. 212 testes passaram/1 opt-in ignorado; tipos/build/audit passaram. Regras/Hosting e bundle HTTP 200 confirmados. Nenhuma ficha real alterada ou apagada. Interface com backend real e download XLSX conferidos; Git em fechamento; escopo/evidências/limitações em [P08](tasks/P08-gestao-excel.md).
+P08 implementada e publicada, dono Codex: Excel em colunas, ano/número na nuvem, previsão informada, medição manual de armazenamento e retenção protegida somente coordenação. 212 testes passaram/1 opt-in ignorado; tipos/build/audit passaram. Regras/Hosting e bundle HTTP 200 confirmados. Nenhuma ficha real alterada ou apagada. Interface pública com dados confirmados e download XLSX do build local conferidos; push do commit efbb2f7 confirmado no GitHub; escopo/evidências/limitações em [P08](tasks/P08-gestao-excel.md).
 
 P07 concluída e publicada: PDF completo em menos páginas, dono Codex. Amostra fictícia 19 → 11 páginas; 728 rótulos/valores presentes, sem caracteres fora das margens; páginas renderizadas conferidas. JSON/CSV e domínio preservados. Final: 202 testes passaram/1 opt-in ignorado com emulador pronto; tipos/build passaram. Hosting publicado e bundle atual confirmado via HTTP. Push origin/master passou; SHA `f0ffab1` conferido no remoto antes deste registro documental. Escopo/evidências/limitações em [P07](tasks/P07-pdf-menos-paginas.md).
 
@@ -26,6 +26,6 @@ P05: estimativa documental de capacidade concluída; amostra atual ≈266 KiB in
 
 ## Próximo passo e limites
 
-P03/P04 concluídas e publicadas. Próximo passo: equipe conferir o layout do PDF e testar GPS/offline no aparelho de campo. Manter perguntas científicas em [DECISIONS.md](DECISIONS.md)/[DOMAIN_RULES.md](DOMAIN_RULES.md): listas/unidades/fuso, numeração e reabertura. Nova reabertura distinta bloqueada até protocolo; complementos da abertura existente preservam histórico na auditoria. Layout PDF proposto aguarda validação da coordenação; GPS físico/instalação em aparelhos não testados. Spark sujeito às cotas, não ilimitado.
+P03/P04/P07/P08 concluídas e publicadas. Fichas antigas aguardam ano/número explícitos em Sem ano definido; previsão depende da equipe e quota de medição manual. Conta Adriano campo segue sem retenção administrativa (D-025). Próximo passo: equipe conferir o layout do PDF e testar GPS/offline no aparelho de campo. Manter perguntas científicas em [DECISIONS.md](DECISIONS.md)/[DOMAIN_RULES.md](DOMAIN_RULES.md): listas/unidades/fuso, numeração e reabertura. Nova reabertura distinta bloqueada até protocolo; complementos da abertura existente preservam histórico na auditoria. Layout PDF proposto aguarda validação da coordenação; GPS físico/instalação em aparelhos não testados. Spark sujeito às cotas, não ilimitado.
 
 Continuação: [handoffs/ATUAL.md](handoffs/ATUAL.md); escopo/dono: [BACKLOG.md](BACKLOG.md).

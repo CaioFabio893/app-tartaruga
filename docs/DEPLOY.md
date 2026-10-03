@@ -94,3 +94,5 @@ Deploy somente Hosting passou após 201 testes/tipos/build. Publicados CSV prote
 
 ## P08 — publicada em 03/10/2026
 Regras/Hosting publicados após 212 testes/tipos/build/audit. Comando da tarefa P08, apenas firestore:rules,hosting, projeto correto/conta autorizada; nenhum upgrade/plano/novo serviço. HTTP 200 de raiz e `/assets/index-CiUrIPWV.js` confirmados. Conta real campo preservada; coordenação de retenção exige provisionamento autorizado fora do cliente (D-025), não promoção automática. Não houve escrita/exclusão de fichas de teste em produção.
+
+Pós-publicação P08: URL pública autenticou o acesso existente e gerou prévia confirmada com 1 ninho e novos filtros/exportador; nenhuma ficha alterada. Push efbb2f7 confirmado no remoto.
