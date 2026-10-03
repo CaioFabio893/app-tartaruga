@@ -5,15 +5,155 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/projetos/$(projeto)/membros/$(request.auth.uid)).data;
     }
     function autorizado(projeto) {
-      return request.auth != null && membro(projeto).ativo == true
-        && membro(projeto).uid == request.auth.uid && membro(projeto).projeto_id == projeto
-        && membro(projeto).papel in ['consulta', 'campo', 'coordenacao'];
+      let m = membro(projeto);
+      return request.auth != null && m.ativo == true
+        && m.uid == request.auth.uid && m.projeto_id == projeto
+        && m.papel in ['consulta', 'campo', 'coordenacao'];
     }
     function coordenacao(projeto) { return autorizado(projeto) && membro(projeto).papel == 'coordenacao'; }
+    function campo(projeto) { return autorizado(projeto) && membro(projeto).papel in ['campo','coordenacao']; }
+    function texto(v) { return v == null || v is string; }
+    function numero(v) { return v == null || (v is number && v >= 0); }
+    function contagem(v) { return v == null || (v is int && v >= 0 && v <= 9007199254740991); }
+    function calendario(v) {
+      let partes = v.split('-'); let ano = int(partes[0]); let mes = int(partes[1]); let dia = int(partes[2]);
+      return ano >= 1 && timestamp.date(ano,mes,dia).day() == dia;
+    }
+    function data(v) { return v == null || (v is string && v.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$') && calendario(v)); }
+    function hora(v) { return v == null || (v is string && v.matches('^([01][0-9]|2[0-3]):[0-5][0-9]$')); }
+    function booleano(v) { return v == null || v is bool; }
+    function local(l) {
+      return l is map && l.keys().size() == 11 && l.keys().hasOnly(['praia_id','praia_codigo','local_km','bairro','referencia','latitude','longitude','datum','fonte_gps','precisao_gps_m','capturado_em'])
+        && texto(l.praia_id) && texto(l.praia_codigo) && texto(l.local_km) && texto(l.bairro) && texto(l.referencia)
+        && (l.latitude == null || (l.latitude is number && l.latitude >= -90 && l.latitude <= 90))
+        && (l.longitude == null || (l.longitude is number && l.longitude >= -180 && l.longitude <= 180))
+        && (l.latitude == null && l.longitude == null || l.datum != null) && l.datum in [null,'SIRGAS2000','WGS84'] && l.fonte_gps in [null,'dispositivo','manual']
+        && numero(l.precisao_gps_m) && texto(l.capturado_em);
+    }
+    function trilha(d,p,id) {
+      return d.id == id && d.projeto_id == p && d.atualizado_por == request.auth.uid && d.criado_por is string
+        && d.criado_em is string && d.atualizado_em is string && d.versao is int && d.versao >= 1 && d.operacao_id is string;
+    }
+    function criacao(d) { return d.versao == 1 && d.criado_por == request.auth.uid; }
+    function atualizacao(d) { return d.versao == resource.data.versao + 1 && d.criado_por == resource.data.criado_por && d.criado_em == resource.data.criado_em; }
+    function atomica(p,d,caminho) {
+      let depois = getAfter(/databases/$(database)/documents/projetos/$(p)).data;
+      let op = getAfter(/databases/$(database)/documents/projetos/$(p)/operacoes/$(d.operacao_id)).data;
+      return !exists(/databases/$(database)/documents/projetos/$(p)/operacoes/$(d.operacao_id)) && depois.ativo == true
+        && depois.ultima_operacao == d.operacao_id && caminho in op.caminhos
+        && op.anteriores[caminho] == (request.method == 'create' ? null : resource.data);
+    }
+    function animal(d) {
+      return d.especie_codigo in [null,'CC','EI','LO','CM','DC','NI'] && d.tumores in [null,'S','N','I']
+        && (d.flagrante != true || d.tumores != null) && numero(d.comprimento_casco) && numero(d.largura_casco)
+        && texto(d.marcas_encontradas) && texto(d.marcas_colocadas) && texto(d.marcas_retiradas) && texto(d.observacoes)
+        && (d.coleta_material_biologico == null || d.coleta_material_biologico is list) && booleano(d.evidencia_interacao_pesca) && texto(d.tipo_evidencia)
+        && (d.evidencia_interacao_pesca != true || (d.tipo_evidencia is string && d.tipo_evidencia.size() > 0))
+        && d.palavras_chave is list && d.palavras_chave.hasOnly(['ALBINO','ANOMALO','CACHORRO','CARANGUEJO','CICATRIZ','DNA','EPIBIONTE','FORMIGA','HIBRIDO','LAGARTO','MUTILADA','PESCA','PORCO','RAPOSA','RATO','RAIZ']);
+    }
+    function ocorrencia(d) {
+      return d.keys().size() == 33 && d.keys().hasOnly(['id','projeto_id','temporada_id','responsavel_id','numero_registro','tipo_ocorrencia','tipo_registro','verificacao_praia_realizada','flagrante','data_ocorrencia','instante_ocorrencia','hora_ocorrencia','noite_referencia','local_origem','marcas_encontradas','marcas_colocadas','marcas_retiradas','especie_codigo','comprimento_casco','largura_casco','tumores','coleta_material_biologico','evidencia_interacao_pesca','tipo_evidencia','palavras_chave','observacoes','ninho_id','criado_por','criado_em','atualizado_por','atualizado_em','versao','operacao_id'])
+        && d.ninho_id == (d.tipo_ocorrencia == 'CD' ? d.ninho_id : null) && texto(d.ninho_id) && d.tipo_ocorrencia in ['CD','ML','SD','ND','PI'] && d.tipo_registro in ['REPRODUTIVO','NAO_REPRODUTIVO']
+        && booleano(d.flagrante) && booleano(d.verificacao_praia_realizada)
+        && (d.tipo_ocorrencia != 'SD' || d.verificacao_praia_realizada == true)
+        && d.especie_codigo in [null,'CC','EI','LO','CM','DC','NI'] && d.tumores in [null,'S','N','I']
+        && (d.flagrante != true || d.tumores != null) && (d.flagrante == true || d.hora_ocorrencia == null)
+        && data(d.data_ocorrencia) && (d.noite_referencia == d.data_ocorrencia || data(d.noite_referencia)) && texto(d.instante_ocorrencia) && hora(d.hora_ocorrencia)
+        && local(d.local_origem) && numero(d.comprimento_casco) && numero(d.largura_casco)
+        && texto(d.numero_registro) && texto(d.temporada_id) && texto(d.responsavel_id)
+        && texto(d.marcas_encontradas) && texto(d.marcas_colocadas) && texto(d.marcas_retiradas) && texto(d.observacoes)
+        && (d.coleta_material_biologico == null || d.coleta_material_biologico is list) && booleano(d.evidencia_interacao_pesca) && texto(d.tipo_evidencia)
+        && (d.evidencia_interacao_pesca != true || (d.tipo_evidencia is string && d.tipo_evidencia.size() > 0))
+        && d.palavras_chave is list && d.palavras_chave.hasOnly(['ALBINO','ANOMALO','CACHORRO','CARANGUEJO','CICATRIZ','DNA','EPIBIONTE','FORMIGA','HIBRIDO','LAGARTO','MUTILADA','PESCA','PORCO','RAPOSA','RATO','RAIZ']);
+    }
+    function ninho(d) {
+      return d.keys().size() == 16 && d.keys().hasOnly(['id','projeto_id','temporada_id','ocorrencia_id','codigo_interno','situacao','historico_ninho','problema_incubacao','estado_acompanhamento','transferencia_inicial_id','criado_por','criado_em','atualizado_por','atualizado_em','versao','operacao_id'])
+        && texto(d.transferencia_inicial_id) && d.ocorrencia_id is string && d.codigo_interno is string && texto(d.temporada_id)
+        && d.situacao in ['I','T','P'] && d.historico_ninho in [null,'PH','PA','PM','PE','SU','NM','OT']
+        && booleano(d.problema_incubacao) && d.estado_acompanhamento in ['AGUARDANDO','ATIVO','ABERTO','ENCERRADO'];
+    }
+    function transferencia(d) {
+      return d.keys().size() == 21 && d.keys().hasOnly(['id','projeto_id','ninho_id','destino','cercado_id','local_destino','data_transferencia','instante_transferencia','noite_referencia','tempo_transferencia','ovos_transferencia','numero_ninho_cercado','sequencia','responsavel_id','observacoes','criado_por','criado_em','atualizado_por','atualizado_em','versao','operacao_id'])
+        && d.destino in ['CERCADO','PRAIA'] && texto(d.cercado_id) && local(d.local_destino)
+        && (d.destino != 'CERCADO' || (d.cercado_id is string && d.cercado_id.size() > 0 && d.numero_ninho_cercado is string && d.numero_ninho_cercado.size() > 0))
+        && (d.destino != 'PRAIA' || (d.numero_ninho_cercado == null && d.local_destino.praia_codigo is string && d.local_destino.local_km is string))
+        && data(d.data_transferencia) && d.data_transferencia != null && data(d.noite_referencia) && texto(d.instante_transferencia)
+        && d.tempo_transferencia in [null,'A','B','C','D','E'] && contagem(d.ovos_transferencia) && contagem(d.sequencia)
+        && texto(d.responsavel_id) && texto(d.observacoes);
+    }
+    function abertura(d,p,n) {
+      let origem = get(/databases/$(database)/documents/projetos/$(p)/ninhos/$(n)).data.ocorrencia_id;
+      let o = get(/databases/$(database)/documents/projetos/$(p)/ocorrencias/$(origem)).data;
+      return d.keys().size() == 24 && d.keys().hasOnly(['id','projeto_id','ninho_id','data_eclosao','instante_eclosao','noite_referencia_eclosao','data_abertura','instante_abertura','noite_referencia_abertura','hora_primeiro_filhote','hora_ultimo_filhote','vivos','natimortos','ovos_nao_eclodidos','ovos_furados','nao_viaveis','responsavel_id','observacoes','criado_por','criado_em','atualizado_por','atualizado_em','versao','operacao_id'])
+        && data(d.data_eclosao) && data(d.data_abertura) && (d.data_eclosao != null || d.data_abertura != null)
+        && data(d.noite_referencia_eclosao) && data(d.noite_referencia_abertura) && texto(d.instante_eclosao) && texto(d.instante_abertura)
+        && hora(d.hora_primeiro_filhote) && hora(d.hora_ultimo_filhote) && texto(d.responsavel_id) && texto(d.observacoes)
+        && contagem(d.vivos) && contagem(d.natimortos) && contagem(d.ovos_nao_eclodidos) && contagem(d.ovos_furados) && contagem(d.nao_viaveis)
+        && (getAfter(/databases/$(database)/documents/projetos/$(p)/ninhos/$(n)).data.historico_ninho == null || (d.observacoes is string && d.observacoes.size() > 0))
+        && (d.data_eclosao == null || d.data_abertura == null || d.data_abertura >= d.data_eclosao)
+        && (o.data_ocorrencia == null || d.data_eclosao == null || d.data_eclosao >= o.data_ocorrencia)
+        && (o.data_ocorrencia == null || d.data_abertura == null || d.data_abertura >= o.data_ocorrencia)
+        && (o.especie_codigo == 'DC' || d.nao_viaveis == null)
+        && (d.data_abertura != null || (d.vivos == null && d.natimortos == null && d.ovos_nao_eclodidos == null && d.ovos_furados == null && d.nao_viaveis == null));
+    }
+    function visita(d) {
+      return d.keys().size() == 15 && d.keys().hasOnly(['id','projeto_id','ninho_id','data_visita','noite_referencia','responsavel_id','condicao','eventos','observacoes','criado_por','criado_em','atualizado_por','atualizado_em','versao','operacao_id'])
+        && data(d.data_visita) && d.data_visita != null && data(d.noite_referencia) && texto(d.responsavel_id)
+        && texto(d.condicao) && texto(d.observacoes) && d.eventos is list && d.eventos.hasOnly(['predacao','mare','perda_marcacao','outro']);
+    }
+    function dataProjetada(campo,noite) { return campo != null && noite != null && campo != noite ? null : campo != null ? campo : noite; }
+    function ambigua(campo,noite) { return campo != null && noite != null && campo != noite; }
+    function projecao(p,d,id) {
+      let n = getAfter(/databases/$(database)/documents/projetos/$(p)/ninhos/$(id)).data;
+      let o = getAfter(/databases/$(database)/documents/projetos/$(p)/ocorrencias/$(n.ocorrencia_id)).data;
+      let tem = existsAfter(/databases/$(database)/documents/projetos/$(p)/ninhos/$(id)/aberturas/$(id));
+      let b = tem ? getAfter(/databases/$(database)/documents/projetos/$(p)/ninhos/$(id)/aberturas/$(id)).data : {'data_eclosao':null,'noite_referencia_eclosao':null,'data_abertura':null,'noite_referencia_abertura':null};
+      let e = tem ? b.data_eclosao : null; let en = tem ? b.noite_referencia_eclosao : null;
+      let a = tem ? b.data_abertura : null; let an = tem ? b.noite_referencia_abertura : null;
+      return d.keys().hasOnly(['id','projeto_id','datas','ambiguas','projeto_versao_ref','projecao_versao','operacao_id','praia_codigo','especie_codigo','temporada_id','situacao','historico_ninho','tipo_registro'])
+        && d.id == id && d.projeto_id == p
+        && d.datas == {'OCORR':o.data_ocorrencia,'ECLOS':dataProjetada(e,en),'ABERT':dataProjetada(a,an)}
+        && d.ambiguas == {'OCORR':false,'ECLOS':ambigua(e,en),'ABERT':ambigua(a,an)}
+        && d.praia_codigo == o.local_origem.praia_codigo && d.especie_codigo == o.especie_codigo
+        && d.temporada_id == n.temporada_id && d.situacao == n.situacao && d.historico_ninho == n.historico_ninho && d.tipo_registro == o.tipo_registro
+        && d.projeto_versao_ref == n.versao && d.projecao_versao == 2
+        && d.operacao_id == n.operacao_id;
+    }
+    function projecoesObrigatorias(p,d) {
+      let q = getAfter(/databases/$(database)/documents/projetos/$(p)/consultas/$(d.id)).data;
+      return q.operacao_id == d.operacao_id && q.projeto_versao_ref == d.versao;
+    }
+    function reservaAlvo(p,d,tipo,escopo,numero,caminho) {
+      let r = getAfter(/databases/$(database)/documents/projetos/$(p)/reservas/$(tipo + ':' + escopo)/numeros/$(numero)).data;
+      return r.documento_alvo == caminho && (tipo == 'N_REGISTRO' && request.method == 'update' && resource.data.numero_registro == numero || r.operacao_id == d.operacao_id);
+    }
+    function numeroReservado(p,d,tipo,escopo,numero,caminho) {
+      return numero == null || (numero is string && numero.size() > 0 && !numero.matches('.*[/#\\\\].*') && reservaAlvo(p,d,tipo,escopo,numero,caminho));
+    }
+    function manejoInicial(p,d) {
+      return d.situacao == 'I' ? d.transferencia_inicial_id == null : d.transferencia_inicial_id is string
+        && getAfter(/databases/$(database)/documents/projetos/$(p)/ninhos/$(d.id)/transferencias/$(d.transferencia_inicial_id)).data.operacao_id == d.operacao_id
+        && getAfter(/databases/$(database)/documents/projetos/$(p)/ninhos/$(d.id)/transferencias/$(d.transferencia_inicial_id)).data.destino == (d.situacao == 'T' ? 'CERCADO' : 'PRAIA');
+    }
+    function manejoAtualizado(p,d) {
+      let op = getAfter(/databases/$(database)/documents/projetos/$(p)/operacoes/$(d.operacao_id)).data;
+      return d.transferencia_inicial_id == resource.data.transferencia_inicial_id
+        && ((op.tipo == 'transferencia' && d.historico_ninho == resource.data.historico_ninho && d.problema_incubacao == resource.data.problema_incubacao && d.estado_acompanhamento == resource.data.estado_acompanhamento
+          && getAfter(/databases/$(database)/documents/projetos/$(p)/ninhos/$(d.id)/transferencias/$(op.referencia_id)).data.operacao_id == d.operacao_id)
+        || (op.tipo == 'animal' && d.situacao == resource.data.situacao && d.historico_ninho == resource.data.historico_ninho && d.problema_incubacao == resource.data.problema_incubacao && d.estado_acompanhamento == resource.data.estado_acompanhamento && op.referencia_id == d.ocorrencia_id && getAfter(/databases/$(database)/documents/projetos/$(p)/ocorrencias/$(d.ocorrencia_id)).data.operacao_id == d.operacao_id)
+        || (op.tipo == 'abertura' && op.referencia_id == d.id && d.situacao == resource.data.situacao
+          && getAfter(/databases/$(database)/documents/projetos/$(p)/ninhos/$(d.id)/aberturas/$(d.id)).data.operacao_id == d.operacao_id));
+    }
+    function reservaOrigem(p,d) {
+      let r = d.tipo_numero == 'N_REGISTRO' ? getAfter(/databases/$(database)/documents/projetos/$(p)/ocorrencias/$(d.ocorrencia_id)).data : getAfter(/databases/$(database)/documents/projetos/$(p)/ninhos/$(d.ninho_id)/transferencias/$(d.transferencia_id)).data;
+      return r.operacao_id == d.operacao_id && (d.tipo_numero == 'N_REGISTRO'
+        ? d.documento_alvo == 'projetos/'+p+'/ocorrencias/'+d.ocorrencia_id && r.numero_registro == d.numero && (r.temporada_id == null ? '-' : r.temporada_id) == d.escopo
+        : d.documento_alvo == 'projetos/'+p+'/ninhos/'+d.ninho_id+'/transferencias/'+d.transferencia_id && r.numero_ninho_cercado == d.numero && r.cercado_id == d.escopo);
+    }
     function membroValido(projeto, uid) {
       let d = request.resource.data;
       return d.keys().hasAll(['uid','projeto_id','nome','email','papel','ativo','criado_em','criado_por','atualizado_em','atualizado_por','versao'])
-        && d.keys().hasOnly(['uid','projeto_id','nome','email','papel','ativo','criado_em','criado_por','atualizado_em','atualizado_por','versao'])
+        && d.keys().size() == 11 && d.keys().hasOnly(['uid','projeto_id','nome','email','papel','ativo','criado_em','criado_por','atualizado_em','atualizado_por','versao'])
         && d.uid == uid && d.projeto_id == projeto && d.nome is string && d.email is string
         && d.papel in ['consulta','campo'] && d.ativo is bool && d.versao is int
         && d.criado_em is string && d.atualizado_em is string && d.criado_por is string
@@ -21,7 +161,66 @@ service cloud.firestore {
     }
     match /projetos/{projeto} {
       allow get: if autorizado(projeto);
-      allow list, write: if false;
+      allow list, create, delete: if false;
+      allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['revisao_dados','ultima_operacao'])
+        && request.resource.data.revisao_dados == resource.data.revisao_dados + 1
+        && getAfter(/databases/$(database)/documents/projetos/$(projeto)/operacoes/$(request.resource.data.ultima_operacao)).data.autor == request.auth.uid
+        && getAfter(/databases/$(database)/documents/projetos/$(projeto)/operacoes/$(request.resource.data.ultima_operacao)).data.revisao == request.resource.data.revisao_dados;
+      match /operacoes/{id} {
+        allow get: if autorizado(projeto);
+        allow list: if coordenacao(projeto);
+        allow create: if campo(projeto) && request.resource.data.keys().hasOnly(['id','projeto_id','autor','revisao','conteudo','caminhos','anteriores','criado_em','confirmado_em','tipo','referencia_id'])
+          && request.resource.data.tipo in ['ocorrencia','animal','transferencia','abertura','visita'] && request.resource.data.referencia_id is string
+          && request.resource.data.id == id && request.resource.data.projeto_id == projeto && request.resource.data.autor == request.auth.uid
+          && request.resource.data.revisao == get(/databases/$(database)/documents/projetos/$(projeto)).data.revisao_dados + 1
+          && request.resource.data.revisao == getAfter(/databases/$(database)/documents/projetos/$(projeto)).data.revisao_dados
+          && getAfter(/databases/$(database)/documents/projetos/$(projeto)).data.ultima_operacao == id
+          && request.resource.data.conteudo is string && request.resource.data.caminhos is list && request.resource.data.caminhos.size() > 0 && request.resource.data.caminhos.size() <= 12
+          && request.resource.data.anteriores is map && request.resource.data.anteriores.keys().hasOnly(request.resource.data.caminhos) && request.resource.data.anteriores.size() == request.resource.data.caminhos.size() && request.resource.data.criado_em is string && request.resource.data.confirmado_em == request.time;
+        allow update, delete: if false;
+      }
+      match /ocorrencias/{id} {
+        allow create: if trilha(request.resource.data,projeto,id) && criacao(request.resource.data) && ocorrencia(request.resource.data)
+          && numeroReservado(projeto,request.resource.data,'N_REGISTRO',request.resource.data.temporada_id == null ? '-' : request.resource.data.temporada_id,request.resource.data.numero_registro,'projetos/'+projeto+'/ocorrencias/'+id)
+          && atomica(projeto,request.resource.data,'projetos/'+projeto+'/ocorrencias/'+id)
+          && ((request.resource.data.tipo_ocorrencia != 'CD' && request.resource.data.ninho_id == null)
+            || (request.resource.data.tipo_ocorrencia == 'CD' && getAfter(/databases/$(database)/documents/projetos/$(projeto)/ninhos/$(request.resource.data.ninho_id)).data.ocorrencia_id == id));
+        allow update: if trilha(request.resource.data,projeto,id) && atualizacao(request.resource.data) && animal(request.resource.data)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['especie_codigo','marcas_encontradas','marcas_colocadas','marcas_retiradas','comprimento_casco','largura_casco','tumores','coleta_material_biologico','evidencia_interacao_pesca','tipo_evidencia','palavras_chave','observacoes','numero_registro','versao','atualizado_por','atualizado_em','operacao_id'])
+          && (resource.data.numero_registro == null || request.resource.data.numero_registro == resource.data.numero_registro)
+          && numeroReservado(projeto,request.resource.data,'N_REGISTRO',request.resource.data.temporada_id == null ? '-' : request.resource.data.temporada_id,request.resource.data.numero_registro,'projetos/'+projeto+'/ocorrencias/'+id)
+          && atomica(projeto,request.resource.data,'projetos/'+projeto+'/ocorrencias/'+id)
+          && (request.resource.data.ninho_id == null || getAfter(/databases/$(database)/documents/projetos/$(projeto)/ninhos/$(request.resource.data.ninho_id)).data.operacao_id == request.resource.data.operacao_id)
+          && (request.resource.data.especie_codigo == 'DC' || request.resource.data.ninho_id == null || !existsAfter(/databases/$(database)/documents/projetos/$(projeto)/ninhos/$(request.resource.data.ninho_id)/aberturas/$(request.resource.data.ninho_id)) || getAfter(/databases/$(database)/documents/projetos/$(projeto)/ninhos/$(request.resource.data.ninho_id)/aberturas/$(request.resource.data.ninho_id)).data.nao_viaveis == null);
+        allow delete: if false;
+      }
+      match /ninhos/{id} {
+        allow create: if trilha(request.resource.data,projeto,id) && criacao(request.resource.data) && ninho(request.resource.data) && manejoInicial(projeto,request.resource.data)
+          && projecoesObrigatorias(projeto,request.resource.data)
+          && atomica(projeto,request.resource.data,'projetos/'+projeto+'/ninhos/'+id)
+          && getAfter(/databases/$(database)/documents/projetos/$(projeto)/ocorrencias/$(request.resource.data.ocorrencia_id)).data.tipo_ocorrencia == 'CD'
+          && getAfter(/databases/$(database)/documents/projetos/$(projeto)/ocorrencias/$(request.resource.data.ocorrencia_id)).data.ninho_id == id;
+        allow update: if trilha(request.resource.data,projeto,id) && atualizacao(request.resource.data) && ninho(request.resource.data) && manejoAtualizado(projeto,request.resource.data)
+          && projecoesObrigatorias(projeto,request.resource.data)
+          && atomica(projeto,request.resource.data,'projetos/'+projeto+'/ninhos/'+id)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['situacao','historico_ninho','problema_incubacao','estado_acompanhamento','atualizado_por','atualizado_em','versao','operacao_id']);
+        allow delete: if false;
+      }
+      match /consultas/{id} {
+        allow create, update: if projecao(projeto,request.resource.data,id)
+          && atomica(projeto,request.resource.data,'projetos/'+projeto+'/consultas/'+id);
+        allow delete: if false;
+      }
+      match /reservas/{escopo}/numeros/{numero} {
+        allow get: if autorizado(projeto);
+        allow list, update, delete: if false;
+        allow create: if request.resource.data.keys().hasOnly(['projeto_id','tipo_numero','escopo','numero','documento_alvo','operacao_id','criado_em','ocorrencia_id','ninho_id','transferencia_id'])
+          && reservaOrigem(projeto,request.resource.data) && request.resource.data.projeto_id == projeto && request.resource.data.numero == numero
+          && request.resource.data.tipo_numero in ['N_REGISTRO','N_NINHO'] && request.resource.data.escopo is string
+          && escopo == request.resource.data.tipo_numero + ':' + request.resource.data.escopo
+          && request.resource.data.criado_em is string
+          && atomica(projeto,request.resource.data,'projetos/'+projeto+'/reservas/'+escopo+'/numeros/'+numero);
+      }
       match /membros/{uid} {
         allow get: if autorizado(projeto) && (uid == request.auth.uid || coordenacao(projeto));
         allow list: if coordenacao(projeto);
@@ -33,15 +232,25 @@ service cloud.firestore {
         allow delete: if false;
       }
       match /{colecao}/{id} {
+        allow get: if colecao in ['ocorrencias','ninhos','consultas','reservas'] && autorizado(projeto) && !exists(/databases/$(database)/documents/projetos/$(projeto)/$(colecao)/$(id));
         allow read: if colecao in ['temporadas','praias','cercados','ocorrencias','ninhos','consultas','reservas']
           && autorizado(projeto) && resource.data.projeto_id == projeto;
-        // E05/E09: schema, imutabilidade e transacao ainda não integrados. Negar escrita.
+        // Escritas exigem os contratos específicos acima.
         allow write: if false;
       }
       match /ninhos/{ninho}/{colecao}/{id} {
+        allow get: if colecao in ['transferencias','visitas','aberturas'] && autorizado(projeto) && !exists(/databases/$(database)/documents/projetos/$(projeto)/ninhos/$(ninho)/$(colecao)/$(id));
         allow read: if colecao in ['transferencias','visitas','aberturas'] && autorizado(projeto)
           && resource.data.projeto_id == projeto && resource.data.ninho_id == ninho;
-        allow write: if false;
+        allow create: if colecao in ['transferencias','visitas','aberturas'] && trilha(request.resource.data,projeto,id)
+          && criacao(request.resource.data) && request.resource.data.ninho_id == ninho
+          && getAfter(/databases/$(database)/documents/projetos/$(projeto)/ninhos/$(ninho)).data.projeto_id == projeto
+          && atomica(projeto,request.resource.data,'projetos/'+projeto+'/ninhos/'+ninho+'/'+colecao+'/'+id)
+          && ((colecao == 'transferencias' && transferencia(request.resource.data) && getAfter(/databases/$(database)/documents/projetos/$(projeto)/ninhos/$(ninho)).data.operacao_id == request.resource.data.operacao_id && getAfter(/databases/$(database)/documents/projetos/$(projeto)/ninhos/$(ninho)).data.situacao == (request.resource.data.destino == 'CERCADO' ? 'T' : 'P') && numeroReservado(projeto,request.resource.data,'N_NINHO',request.resource.data.cercado_id == null ? '-' : request.resource.data.cercado_id,request.resource.data.numero_ninho_cercado,'projetos/'+projeto+'/ninhos/'+ninho+'/transferencias/'+id)) || (colecao == 'visitas' && visita(request.resource.data)) || (colecao == 'aberturas' && id == ninho && abertura(request.resource.data,projeto,ninho) && getAfter(/databases/$(database)/documents/projetos/$(projeto)/ninhos/$(ninho)).data.operacao_id == request.resource.data.operacao_id));
+        allow update: if colecao == 'aberturas' && id == ninho && getAfter(/databases/$(database)/documents/projetos/$(projeto)/ninhos/$(ninho)).data.operacao_id == request.resource.data.operacao_id && trilha(request.resource.data,projeto,id) && atualizacao(request.resource.data)
+          && request.resource.data.ninho_id == ninho && abertura(request.resource.data,projeto,ninho)
+          && atomica(projeto,request.resource.data,'projetos/'+projeto+'/ninhos/'+ninho+'/'+colecao+'/'+id);
+        allow delete: if false;
       }
     }
     match /{document=**} { allow read, write: if false; }

@@ -1,4 +1,5 @@
 {
+  "auth": { "providers": { "emailPassword": true, "anonymous": false } },
   "hosting": {
     "public": "dist",
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**", "**/*.map"],

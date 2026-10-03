@@ -19,7 +19,7 @@ export interface Relatorio {
   parcial: boolean
   versaoFormula: string
   registros: RegistroRelatorio[]
-  exclusoes: { dataAusente: number; dataAmbigua: number; foraPeriodo: number; outrosFiltros: number } | null
+  exclusoes: { dataAusente: number; dataAmbigua: number; foraPeriodo: number|null; outrosFiltros: number|null } | null
   avisos: string[]
 }
 

@@ -19,7 +19,7 @@ O PDF é gerado **no cliente** com `pdf-lib`. O layout é **proposta** até a eq
 As datas do filtro são comparadas com as **datas de referência de campo**, nunca com `Date` UTC
 (`DOMAIN_RULES` §3).
 
-Na integração oficial planejada, projeção por projeto/critério com limites inclusivos >= inicio e <= fim e filtros escalares (D-014), índices próprios por combinação. Contrato em src/domain/consultas.ts; emulador não valida índices de produção. Na interface atual o conjunto é o treino local conhecido, sem leitor oficial.
+P03: projeção mínima por ninho, três datas indexadas e limites inclusivos no servidor; filtros opcionais nos metadados antes de ler detalhes. Consulta separada de null no mesmo projeto/filtros. Versão/operação e revisão global conferidas; pendências impedem confirmado. Contrato ativo em DATA_MODEL §4.10/§7 e src/data/nuvem.ts, substituindo o desenho R02 de três linhas (D-020). Treino continua separado. Emulador não valida índices reais; estes precisam READY.
 
 Implementação em src/report/relatorio.ts valida e congela snapshot usado pelas três exportações. Eclosão é considerada antes da abertura e independentemente de contagens. Data canônica/referência de noite divergentes ou múltiplas datas distintas são ambiguidade rastreada, sem escolha silenciosa; registro excluído e relatório parcial. Período não usa Date UTC.
 
@@ -34,7 +34,7 @@ Registro **sem a data do critério** não entra no relatório. A tela mostra:
 Uma consulta por intervalo não retorna os registros sem a data; não consegue contar essas exclusões
 sozinha. O `M` só é exibido quando apurado por uma consulta **adicional** de contagem com o mesmo escopo e os
 mesmos filtros do relatório: `descreverConsultaAusentes` (`src/domain/consultas.ts`) descreve essa contagem
-com `data_criterio = null`. Sem esse escopo explícito, não exibir o número de excluídos.
+com `datas.<criterio> = null`. Sem esse escopo explícito, não exibir o número de excluídos.
 
 ## 3. Colunas
 

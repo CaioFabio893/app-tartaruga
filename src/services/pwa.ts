@@ -6,7 +6,7 @@ export async function registrarCacheInterface(aoMudar:(mensagem:string)=>void):P
   const comunicar=()=>{
     if(!ativo)return
     if(registro.waiting) aoMudar('Atualização disponível. Salve os formulários, feche as abas do aplicativo e reabra.')
-    else if(registro.active) aoMudar('Cache da interface instalado. Dados locais continuam não sincronizados.')
+    else if(registro.active) aoMudar('Cache da interface instalado. Confira acima o estado de sincronização dos dados.')
   }
   let instalando:ServiceWorker|null=null
   const mudou=()=>comunicar()

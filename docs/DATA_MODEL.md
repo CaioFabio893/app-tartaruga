@@ -4,7 +4,7 @@ Contrato de dados do app. As regras científicas estão em `DOMAIN_RULES.md`; os
 em `FIELD_DICTIONARY.md`. Este documento define **onde cada dado mora**, **quem é o dono de cada campo** e
 **como ele é escrito**.
 
-> Estado: contratos de persistência oficial ainda não integrados. Treino normalizado local em `src/data/treino.ts`; regras de campo negam escrita. Ver STATUS.md e D-017/D-018.
+> P03 integra Auth/Firestore e mantém treino separado. D-019–D-021 atualizam contratos técnicos de reserva/projeção/auditoria abaixo; fonte científica permanece DOMAIN_RULES/FIELD_DICTIONARY. Ver STATUS.md.
 
 ## 1. Convenções
 
@@ -24,7 +24,7 @@ em `FIELD_DICTIONARY.md`. Este documento define **onde cada dado mora**, **quem 
 Nomes de arquivo em pt-BR seguem o padrão observado no repositório (`ARCHITECTURE.md`). Nomes de campo e de
 coleção em `snake_case` em inglês, por convenção estável para o Firestore. Colunas de exportação usam os
 nomes do manual (`FIELD_DICTIONARY` §7). O mapeamento entre o tipo TypeScript (`camelCase`) e o documento
-(`snake_case`) é explícito em `src/domain/persistencia.ts` — nenhuma conversão implícita por spread.
+(`snake_case`) é explícito no contrato `src/domain/persistencia.ts` e nos DTOs ativos `src/data/nuvem.ts` — nenhuma conversão implícita por spread.
 
 ## 2. Repositórios Firestore
 
@@ -39,8 +39,8 @@ projetos/{projetoId}/ninhos/{ninhoId}                            doc
 projetos/{projetoId}/ninhos/{ninhoId}/transferencias/{id}        subcoleção
 projetos/{projetoId}/ninhos/{ninhoId}/visitas/{id}               subcoleção
 projetos/{projetoId}/ninhos/{ninhoId}/aberturas/{id}              subcoleção
-projetos/{projetoId}/consultas/{linhaId}                         doc   (projeção de relatório, §7)
-projetos/{projetoId}/reservas/{reservaId}                        doc   (§6)
+projetos/{projetoId}/consultas/{ninhoId}                         doc   (projeção de relatório, §7)
+projetos/{projetoId}/reservas/{tipoEscopo}/numeros/{numero}          doc   (§6)
 ```
 
 Todo documento tem `projeto_id`. **Toda** consulta e **toda** regra filtra por ele: é o que isola os dados
@@ -199,23 +199,13 @@ Subcoleção do ninho: o ato de eclosão/abertura, com os dados biológicos cole
 
 Materialização opcional dos derivados, sempre com `derivados_formula_versao: 'v2'` (ver `DECISIONS.md` D-002).
 
-### 4.10 Linha de consulta (projeção de relatório)
-Documento derivado, **não editável pela interface**, escrito na mesma transação que altera a origem (§7).
+### 4.10 Projeção mínima v2 por ninho
 
-| Campo | Tipo | Origem |
-| --- | --- | --- |
-| `id` | string | estável: `{unidadeId}` para `OCORR`, `{ninhoId}:ECLOS`, `{ninhoId}:ABERT` |
-| `projeto_id` | string | isolamento |
-| `criterio` | `'OCORR' \| 'ECLOS' \| 'ABERT'` | por qual data o período é filtrado |
-| `filtros` | `string[]` | metadados, não múltiplos array-contains; tokens `praia:`, `esp:`, `temp:`, `sit:`, `hist:`, `nat:` (ver `src/domain/consultas.ts`) |
-| `data_criterio` | `string \| null` | `data_ocorrencia`, `noite_referencia_eclosao` ou `noite_referencia_abertura` |
-| `ninho_id`, `ocorrencia_id`, `abertura_id` | `string \| null` | vínculos para a etapa de detalhe |
-| `numero_registro`, `codigo_interno` | `string \| null` | **cópia derivada** de `Ocorrencia`/`Ninho` para a tabela resumida |
-| `projeto_versao_ref` | `number` | versão do documento de origem quando a linha foi escrita |
-| `projecao_de`, `projecao_versao`, `atualizado_em` | — | metadados da projeção |
+`projetos/{p}/consultas/{ninhoUUID}`: id, projeto_id, datas (OCORR/ECLOS/ABERT), ambiguas (mesmas chaves), projeto_versao_ref (versão do ninho), projecao_versao=2, operacao_id e os filtros praia_codigo/especie_codigo/temporada_id/situacao/historico_ninho/tipo_registro. Data ausente/divergente permanece null, jamais data escolhida silenciosamente.
 
-Sem `data_criterio` a linha **não entra** no relatório por período, mas continua na coleção: é o que permite a
-consulta de contagem de excluídos por data ausente, com escopo próprio (§7.2).
+Escrita atômica e regras conferem mapas/filtros contra ocorrência+ninho+abertura. Detalhes/número/localização são lidos da origem, sem cópias adicionais. Este contrato substitui as três linhas propostas por R02, devido ao limite de expressões do Firestore; justificativa D-020. Não confundir projeção técnica v2 com fórmula científica v2.
+
+Metadados adicionais no backend: ninho.transferencia_inicial_id imutável (UUID ou null), operacao_id nos documentos; operações imutáveis com tipo/referência, conteúdo, caminhos, pré-imagens, revisão e confirmado_em = timestamp do servidor. Mapeadores de domínio preservam os campos científicos explicitamente. Marcador técnico de transferência é conservado pelo repositório ao atualizar ninho.
 
 ## 5. Derivados de leitura
 
@@ -262,46 +252,21 @@ com o próprio valor.
 `N_REGISTRO` (p. 1) e `N_NINHO` (p. 4) são os únicos números oficiais. O app **não** promete sequência
 global offline nem garante oficialidade de unicidade antes da sincronização.
 
-Contrato puro planejado sem Cloud Function e sem Blaze (`src/domain/reserva.ts`); transação remota abaixo ainda não implementada:
+P03 usa reserva determinística `projetos/{p}/reservas/{tipo}:{escopo}/numeros/{numero}`. Tipo N_REGISTRO com escopo temporada ou '-' quando ausente; tipo N_NINHO com escopo cercado. Texto conserva zeros, não aceita separadores de caminho. Regras ligam a reserva ao documento de origem, número/escopo e operação. Reserva é imutável e atômica com origem/projeção/auditoria.
 
-1. documento de reserva em `projetos/{p}/reservas/{chave}`, com chave **determinística** por escopo e número
-   (`reserva.ts` monta a chave; o formato está versionado em `RESERVA_V1`);
-2. criação da reserva, do registro e da projeção de consulta na **mesma transação online**: dois aparelhos
-   disputando o mesmo número produzem **um vencedor**, e o perdedor recebe o erro de chave já existente;
-3. **idempotência**: a transação confere o `operation_id` já aplicado; reenviar a mesma operação não
-   duplica nem reserva duas vezes;
-4. offline, o registro nasce com `numero_registro = null` e número **pendente** visível (`OFFLINE.md`); nada
-   é reservado no dispositivo, porque não há como saber o que já existe;
-5. em conflito, o usuário **escolhe** outro número — o app não escolhe sozinho (`DECISIONS.md` D-007);
-6. a numeração manual pode ter lacunas (o manual manda inserir sem renumerar, p. 1): não é obrigatório ser
-   contígua nem começar em 1.
-
-Escopo da unicidade — **pendente de confirmação da coordenação** (`STATUS.md`), assumido como padrão no código
-e não declarado como garantia oficial:
-
-| Número | Escopo assumido | Chave |
-| --- | --- | --- |
-| `N_REGISTRO` | projeto + temporada **quando informada** | `n_registro/{projetoId}/{temporadaId \| '-'}/{numero}` |
-| `N_NINHO` | projeto + cercado | `n_ninho/{projetoId}/{cercadoId}/{numero}` |
-
-6. sem `cercado_id` não há como reservar `N_NINHO`: o registro fica com número pendente e aviso, porque um
-   número de cercado não significa nada fora do cercado.
+Escopo continua **provisório**, pendente da coordenação; não é garantia oficial de controle geral. Nenhum número é gerado automaticamente. Offline pode registrar o número recebido, mas ele é apenas pendente, ainda não reservado. Conflito não escolhe substituto. Primeiro N_REGISTRO pode ser atribuído em complemento auditado; número atribuído não é renumerado. Contrato puro R02 de reserva-v1 fica como referência histórica; o caminho SDK ativo está em src/data/nuvem.ts, D-019/D-021.
 
 ## 7. Consultas de relatório e índices
 
-O contrato oficial usa projeção por projeto/critério, limites inclusivos `data_criterio >= inicio` e `<= fim` e filtros opcionais por **igualdades escalares** (D-014), não múltiplos array-contains. `src/domain/consultas.ts` define filtros e paginação. A interface atual usa somente conjunto local de treino conhecido; nenhum leitor oficial implementado.
+P03 consulta `projetos/{p}/consultas` com igualdade projeto_id e intervalo inclusivo no campo `datas.OCORR`, `datas.ECLOS` ou `datas.ABERT`, ordenado por data+ID e paginado (200). Filtros opcionais são aplicados aos metadados da consulta antes dos detalhes. Três índices ativos em firestore.indexes.json. O descritor puro R02 é utilizado para validar entrada, não traduzido literalmente em consulta SDK; D-020 explica a substituição técnica.
 
-`firestore.indexes.json` contém índice base projeto + critério + data + nome. Combinações opcionais precisam de índices próprios conforme consultas efetivamente integradas. O emulador não valida exigências de índices de produção; essa validação fica para fase oficial autorizada.
+Consulta separada `datas.<criterio> == null` apura ausentes/ambiguidades com o mesmo projeto/filtros. Não contar ninhos fora do período sem base enumerada. Detalhes só dos selecionados; versão/operação da projeção e revisão global antes/depois conferem consistência. Mais de 5.000 documentos na leitura interrompe com aviso, não promete conjunto completo. A abertura oficial usa UUID do ninho como ID estável; complemento/correção preserva anterior na operação. Reabertura distinta bloqueada enquanto a pergunta científica está aberta.
 
-Leituras são contabilizadas por documento, não por página ou subcoleção. Histórico com vários documentos acrescenta leituras; consultas/regras podem acrescentar custos sujeitos às cotas. Não prometer quatro leituras por ficha ou custo zero ilimitado. App Check não substitui regras ou filtros.
-
-Contagem de ausentes é consulta própria escopada com mesmos filtros e `data_criterio == null`; exclusões só aparecem quando há base conhecida. Projeções precisam ser escritas atomicamente com origem e ter versão verificada antes de relatório definitivo. Este é contrato para integração futura, não garantia remota entregue.
-
-Datas de eclosão/abertura são consideradas mesmo antes de contagens; conflitos entre data canônica e referência de noite, ou datas distintas em eventos, não têm escolha silenciosa. Seleção biológica do agregado e seleção de data do relatório são independentes. Ver REPORT_SPEC e DÚVIDAS em DECISIONS.
+A carga inicial da interface ainda lê o projeto inteiro, paginado, e os históricos; relatório usa consulta por período. Leituras são por documento, não por página; uso está sujeito às cotas Spark. Não prometer custo zero ilimitado. Índices de produção precisam estar READY; emulador não valida essa condição.
 
 ## 8. Exclusão e retenção
 
-- Registros de campo não são apagados; correções criam novo valor e mantêm o anterior em `historico`.
+- Registros de campo não são apagados; correções criam nova versão e mantêm a pré-imagem em `operacoes`.
 - Valores derivados podem ser recalculados a qualquer momento e são apagados com segurança, exceto quando
   materializados com `derivados_formula_versao`.
 - Visitas e transferências só recebem acréscimo, nunca edição destrutiva.

@@ -7,3 +7,5 @@ button,input,select{font:inherit}button{cursor:pointer}button:disabled{cursor:wa
 @media(max-width:899px){.lateral{inset:auto 0 0;width:100%;padding:8px;background:var(--mar-900);z-index:5}.marca,.lateral-nota{display:none}.lateral nav{display:flex;justify-content:space-around;gap:0}.lateral nav button{padding:7px 2px;flex-direction:column;gap:4px;font-size:11px;flex:1;border-radius:8px;min-width:0}.conteudo{margin-left:0;width:100%;padding:20px 16px 110px}.cabecalho{align-items:flex-start}.cabecalho .selo{font-size:11px}.cabecalho h1{font-size:24px}}
 @media(max-width:540px){.filtros,.metricas,.campos,.lista-ninhos,.grade-dupla{grid-template-columns:1fr}.cartao{padding:18px}.titulo-acoes{align-items:flex-start;flex-wrap:wrap}.cabecalho{flex-wrap:wrap}.metricas{gap:10px}.metricas>div{padding:12px}.metricas strong{font-size:24px}.acoes .btn{flex:1}.mensagem{font-size:14px}.rodape-app{line-height:1.7}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+
+.cartao>form>fieldset{border:0;margin:0;padding:0}.entrada-projeto .filtros{grid-template-columns:1fr}

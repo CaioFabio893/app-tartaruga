@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-02 — P03 aplicativo em nuvem publicado
+
+- Acesso único adriano, Auth real e Firestore Standard/Hosting Spark. Cadastros, transferências, visitas, abertura e complementos auditados, origem imutável e derivados v2.
+- Transações com revisão/versão, idempotência, reservas e regras de acesso; pendência local durável, confirmação servidor e conflito explícito. Relatórios por três critérios, PDF/JSON/CSV do mesmo snapshot.
+- 188 testes passaram/1 opt-in ignorado; tipos/build passaram. Prova real separada passou; login e prévia confirmada na URL pública. Área sintética desativada sem apagar auditoria; principal vazio. Arquivos/evidências/limites em tasks/P03-integracao-nuvem.md e TESTING.md.
+
 ## 2026-10-02 — P01 Hosting do treino
 
 - Configuração estática Hosting, SPA/cache do SW e exclusão de source maps; publicação solicitada pelo usuário, em outra conta Google.

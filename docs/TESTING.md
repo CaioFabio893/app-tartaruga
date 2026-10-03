@@ -24,7 +24,7 @@ Amostra final `output/pdf/relatorio-demonstracao.pdf`: 11 páginas A4, todas com
 
 15 testes de relatório incluem 501 fichas sem truncamento, vazio, três critérios, datas inclusivas, ambiguidade, null/zero, filtros combinados, vínculos e dados inválidos. Não foi afirmada equivalência com modelo oficial: layout é proposta.
 
-Limites: sem Firebase de produção, índices reais, fila remota, conflito entre aparelhos, instalação física/iOS ou aprovação científica/layout. Escritas oficiais permanecem negadas.
+Limites da entrega local anterior: não validava Firebase real nem fila remota. P03 abaixo acrescenta essas provas. Instalação física/iOS e aprovação científica/layout continuam pendentes.
 
 ## Comandos
 
@@ -55,9 +55,9 @@ npx vite preview
 | Exceção OVOS_TOT | `SITUACAO = P` ou `T` + `problemaIncubacao = true` → usa `OVOS_TRANS`. Se `problemaIncubacao = null` → **não** aplica (sem inferência). | `tests/calculos.test.ts` |
 | PCT_VIVOS | Só com `CD + SU + OVOS_TOT > 0`. Total zero ou indefinido bloqueia. | `tests/calculos.test.ts` |
 | TEMP_INCUB | Só com `CD + SU` e ambas as datas. `DATA_OCORR` em branco → `null` (desova localizada depois). Eclosão anterior à postura → `null`. | `tests/calculos.test.ts` |
-| Tipo ocorrência | `SD` exige `verificacaoPraiaRealizada = true` (p. 3). Só `CD` cria ninho. | `tests/validacao.test.ts` e `tests/treino/treino.test.ts` (ver cobertura específica; formulários oficiais pendentes) |
-| Condicionais | `HIST_NINHO = OT` exige OBS. `TUMORES` obrigatório no flagrante. `EVIDENCIA_INT_PESCA` exige `TIPO_EVIDENCIA`. | `tests/validacao.test.ts` e `tests/treino/treino.test.ts` (ver cobertura específica; formulários oficiais pendentes) |
-| Transferência | Cercado exige `N_NINHO`; praia **proíbe** `N_NINHO` (p. 4). | `tests/validacao.test.ts` e `tests/treino/treino.test.ts` (ver cobertura específica; formulários oficiais pendentes) |
+| Tipo ocorrência | `SD` exige `verificacaoPraiaRealizada = true` (p. 3). Só `CD` cria ninho. | `tests/validacao.test.ts` e `tests/treino/treino.test.ts` (ver cobertura específica e P03) |
+| Condicionais | `HIST_NINHO = OT` exige OBS. `TUMORES` obrigatório no flagrante. `EVIDENCIA_INT_PESCA` exige `TIPO_EVIDENCIA`. | `tests/validacao.test.ts` e `tests/treino/treino.test.ts` (ver cobertura específica e P03) |
+| Transferência | Cercado exige `N_NINHO`; praia **proíbe** `N_NINHO` (p. 4). | `tests/validacao.test.ts` e `tests/treino/treino.test.ts` (ver cobertura específica e P03) |
 | Relatório | Filtro = PDF (mesmo conjunto). Período inclusivo. Datas vazias excluídas e contabilizadas. Vazios impressos como `—`. | `tests/consultas.test.ts` + `tests/report/relatorio.test.ts` |
 | Consulta (F07) | Três critérios (`OCORR`/`ECLOS`/`ABERT`) isolam por projeto. Filtro com `data_criterio >= inicio` e `<= fim`, filtros opcionais escalares; sem `data_criterio` fica fora e é contabilizado à parte. | `tests/consultas.test.ts` |
 | Persistência (F10) | Ida e volta camelCase/snake_case; dono único por campo; número oficial preserva zeros; documento completo sem divergência de chaves. | `tests/persistencia.test.ts` |
@@ -70,3 +70,17 @@ npx vite preview
 que só repete a implementação nem teste que só verifica CSS.
 
 Observação Git: diff --check apontou apenas linhas vazias finais em src/App.tsx e src/domain/tipos.ts; sem falha funcional. Mantidas para não ampliar edição de tipos fora do escopo final.
+
+## P03 — integração real (02/10/2026)
+
+- Suíte completa final: `$env:FIRESTORE_EMULATOR_HOST='127.0.0.1:8080'; npx vitest run` — 188 passaram, 1 prova de produção opt-in ignorada; 18 arquivos. `npx tsc --noEmit` e `npx vite build` passaram. Emulador demo separado; não confundir com produção.
+- tests/nuvem/nuvem.test.ts: transações entre clientes, reenvio idempotente, revisão antiga, campos preenchidos/duas reservas, eclosão antes da escavação, abertura zero/correção/pre-imagem, espécie posterior e N_REGISTRO sem renumerar, três critérios inclusivos/PDF e filtros. Regras rejeitam cliente com papel falso, origem alterada, dados/códigos/projeção adulterados e operação antiga reutilizada. tests/security preserva isolamento/autoelevação/negativa por padrão.
+- tests/nuvem/pendencias.test.ts: fake-indexeddb + SDK mock; pendência recuperada, isolada por usuário, confirmação necessária para limpar, erro sem reenvio automático e arquivo exportável ao adotar remoto. Isso não é teste de rede física.
+- Prova real separada `npx vitest run tests/nuvem/producao.test.ts`, somente com opt-in P03_VALIDAR_PRODUCAO e senha em variável temporária P03_SENHA (não registrar valor): 1 passou. SDK Firebase real, dois clientes da mesma conta adriano, escrita e reenvio/leitura/abertura zero/visita/PDF por OCORR/ECLOS/ABERT; senha incorreta/sem sessão negados; projeto principal conferido vazio. Fichas sintéticas isoladas em validacao-p03-interna, sem coordenadas reais, jamais no projeto principal.
+- Primeira prova real falhou por índice BUILDING; API confirmou READY antes da reexecução. Emulador não valida índices. Regras finais compiladas e publicadas sem avisos.
+- Interface no navegador integrado, build local com backend real: login adriano, fonte confirmada, prévia vazia e download PDF. Arquivo C:/Users/caiof/Downloads/ninhos-confirmado-eclos-2026-10-01-2026-10-31.pdf observado com 2.134 bytes e modificação desta sessão; nenhum erro capturado. O evento de download da ferramenta falhou em P01, mas nesta verificação o arquivo salvo foi observado diretamente (sem insistir na mesma API).
+- Falhas resolvidas: DTO de ocorrência enviado erroneamente como subcoleção; leitura de documento inexistente para CAS; adaptação compat/modular do SDK de testes; fixture sem OBS obrigatório. Limite de 1.000 expressões em ficha completa resolveu-se com projeção mínima e autorização central na operação nova, mantendo validação de schema/domínio/pré-imagem/versões. Nenhuma negativa foi removida para fazer teste passar.
+
+Limites atuais: GPS real/instalação física e rede offline em aparelho não testados nesta P03; PDF é layout proposto até conferência da equipe. Reabertura distinta bloqueada; perguntas científicas em DECISIONS/DOMAIN_RULES. Carga inicial lê o projeto/históricos e consome cotas Spark. Relatório não promete contagem global fora do intervalo. Site pós-publicação conferido conforme DEPLOY/P03.
+
+Pós-publicação: deploy de firestore:rules,hosting passou; URL pública autenticou adriano, exibiu dados confirmados e prévia ECLOS vazia com PDF/JSON/CSV disponíveis; nenhum erro de console capturado. PDF baixado inspecionado com pdf-lib: uma página A4 (595,28 × 841,89 pt), metadados de critério ECLOS e sincronização confirmada. Área validacao-p03-interna e membro desativados via API (HTTP 200), sem excluir fontes/auditoria.

@@ -30,23 +30,17 @@ VITE_FIREBASE_APP_ID=
 
 Nunca commitar `.env.local`. Não usar chaves de serviço no cliente.
 
-## Estado implementado e emulador
+## Configuração real P03
 
-Treino publicado em Hosting Spark no projeto monitoramento-de-tartarugas: https://monitoramento-de-tartarugas.web.app . Sem Firebase web config oficial no build; publicação do site não habilita sincronização. Regras/índices não foram publicados (P01 somente Hosting).
+Projeto Firebase/Google Cloud único monitoramento-de-tartarugas, Spark. Firestore Standard default em southamerica-east1, proteção contra exclusão ativada, sem PITR. Hosting e Auth email/senha padrão habilitados; anonymous=false. App Web cadastrado e config pública em .env.local ignorado (nenhuma chave de serviço no cliente). Usuário único adriano, membro campo provisionado fora do app. Não usar a conta/projeto treino-louise.
 
-Login email/senha sem auto-cadastro; confirmação de membro/projeto usa leitura de servidor, não cache. Regras/índices/firebase.json existem. Campo/projeções negam escrita até integração oficial. Treino é separado do login e não é enviado ao Firebase.
+Regras/índices publicados; campos exigem transação/auditoria, deny-default. Índices datas.OCORR/ECLOS/ABERT conferidos READY em produção. Contratos e testes: [DATA_MODEL.md](DATA_MODEL.md), [SECURITY.md](SECURITY.md), [TESTING.md](TESTING.md). Treino não é migrado automaticamente.
 
-Para testar sem conta real, Java e Firebase CLI instalados:
+Para testes, emuladores Auth 9099/Firestore 8080 somente loopback com projeto demo-tartarugas; VITE_FIREBASE_USAR_EMULADORES=true força o demo. Nunca rodar testes de escrita comum contra produção. Prova real opt-in usa projeto lógico validacao-p03-interna isolado e a mesma conta; nenhuma conta extra criada. Arquivar/desativar seus vínculos depois da prova, sem apagar documentos.
 
-```powershell
-firebase emulators:start --only auth,firestore --project demo-tartarugas
-```
+## Índices e cotas
 
-Em `.env.local`, `VITE_FIREBASE_USAR_EMULADORES=true` força projeto demo-tartarugas e serviços loopback (Auth 9099/Firestore 8080), ignorando ID real. Fixture de membro/projeto precisa ser provisionada apenas no emulador. Sem essa opção, configuração web completa é necessária; nenhum projeto real foi configurado/validado nesta entrega.
-
-## Índices
-
-Índice base em firestore.indexes.json; filtros combinados precisam de índices próprios, conforme DATA_MODEL §7. Emulador valida regras, não índices de produção. Não executar deploy nesta etapa.
+Três índices P03 por projeto+data+ID; índice R02 anterior preservado para não apagar trabalho sem necessidade. Relatório filtra período no servidor; filtros adicionais sobre metadados. Leitura inicial da interface ainda percorre projeto/históricos (limite explícito 5.000 documentos por coleção). Spark é limitado por cotas; não prometer uso ilimitado gratuito. Sem Storage/Functions/Run/App Hosting/Blaze, IA ou upload.
 
 ## Observações
 

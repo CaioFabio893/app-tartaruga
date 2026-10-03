@@ -3,7 +3,7 @@
 Stack: Vite + TypeScript `strict` + React 19 + HTML/CSS + Firebase SDK modular.
 Plano alvo: **Firestore Standard + Firebase Hosting Spark**, sem Blaze.
 
-> Estado atual: interface React, treino IndexedDB, cache estático no build e Auth/Firestore sob demanda. Emuladores demo configurados. Não há persistência oficial, fila remota ou instalação física validada. STATUS.md distingue entregas locais e oficiais.
+> Estado atual P03: React/SDK modular, Auth, Firestore normalizado/transacional, projeção de relatório, IndexedDB de pendências separado do treino e cache estático. Facade src/app/nuvem.ts, repositórios src/data/{nuvem,pendencias}.ts. Instalação física não validada; evidências e limites em STATUS.md/TESTING.md.
 
 ## 1. Árvore de pastas
 

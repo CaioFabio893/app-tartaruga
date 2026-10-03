@@ -3,11 +3,15 @@ import type { Abertura, Ninho, Ocorrencia, Transferencia, Visita } from '../doma
 import { ESPECIES, HISTORICOS_NINHO, SITUACOES, TEMPOS_TRANSFERENCIA } from '../domain/tipos'
 import { paraDia } from '../domain/datas'
 import { contagemValida } from '../domain/calculos'
-import { validarHistoricoNinho, validarHoraOcorrencia, validarSituacao, validarTipoOcorrencia, validarTransferencia, validarTumores } from '../domain/validacao'
+import { validarEvidenciaPesca, validarPalavrasChave, validarHistoricoNinho, validarHoraOcorrencia, validarSituacao, validarTipoOcorrencia, validarTransferencia, validarTumores } from '../domain/validacao'
 import { dadosDemonstracao } from '../report/exemplos'
 
 export interface OperacaoTreino { id: string; criadoEm: string; baseRevisao: number; tipo: string; anterior: unknown; payload: unknown; estado: 'local-sem-sincronizacao' }
 export interface EstadoTreino {
+  statusNuvem?: 'confirmada'|'cache'|'pendente'|'conflito'|'erro';
+  mensagemNuvem?: string;
+  /** Presente apenas no fluxo real; o repositório de treino continua isolado. */
+  contexto?: { projetoId: string; usuario: string; nome: string; papel: 'consulta'|'campo'|'coordenacao'; revisaoServidor: number }
   schema: 1; revisao: number; ocorrencias: Ocorrencia[]; ninhos: Ninho[]; transferencias: Transferencia[];
   aberturas: Abertura[]; visitas: Visita[]; operacoes: OperacaoTreino[]
 }
@@ -25,6 +29,7 @@ function trilha(m: AutoriaTreino) { return {criadoPor:m.usuario,atualizadoPor:m.
 function validarData(data: string | null, campo: string) { if(data !== null && paraDia(data) === null) throw new Error(`${campo}: data inválida.`) }
 function contagem(v: number | null, campo: string) { if(v !== null && !contagemValida(v)) throw new Error(`${campo}: informe inteiro não negativo ou deixe vazio.`) }
 function validarAutoria(m: AutoriaTreino) { if (!m.usuario || !Number.isFinite(Date.parse(m.instante))) throw new Error('Autoria local inválida.') }
+function projetoPermitido(e:EstadoTreino,p:string) { return p === (e.contexto?.projetoId ?? 'projeto-demo') }
 function novo(e: EstadoTreino, m: AutoriaTreino, tipo: string, anterior: unknown, payload: unknown): EstadoTreino {
   validarAutoria(m)
   e.operacoes.push({id:m.novoId(),criadoEm:m.instante,baseRevisao:e.revisao,tipo,anterior:structuredClone(anterior),payload:structuredClone(payload),estado:'local-sem-sincronizacao'})
@@ -33,25 +38,31 @@ function novo(e: EstadoTreino, m: AutoriaTreino, tipo: string, anterior: unknown
 function recusar(problemas: {gravidade: string; mensagem: string}[]) {
   const erros=problemas.filter(p=>p.gravidade==='erro'); if(erros.length) throw new Error(erros.map(p=>p.mensagem).join(' '))
 }
-export function registrarOcorrencia(e: EstadoTreino, o: Omit<Ocorrencia,'id'|'ninhoId'|'criadoPor'|'criadoEm'|'atualizadoPor'|'atualizadoEm'|'versao'>,
-  situacao: Ninho['situacao'], m: AutoriaTreino,
-  transferenciaInicial: Omit<Transferencia,'id'|'ninhoId'|'projetoId'|'criadoPor'|'criadoEm'|'atualizadoPor'|'atualizadoEm'|'versao'> | null = null): EstadoTreino {
+function validarOcorrenciaEntrada(o:Omit<Ocorrencia,'id'|'ninhoId'|'criadoPor'|'criadoEm'|'atualizadoPor'|'atualizadoEm'|'versao'>,situacao:Ninho['situacao']) {
   validarData(o.dataOcorrencia,'DATA_OCORR')
-  recusar([...validarTipoOcorrencia(o.tipoOcorrencia,o.verificacaoPraiaRealizada),...validarSituacao(o.tipoOcorrencia,situacao),
+  recusar([...validarEvidenciaPesca(o.evidenciaInteracaoPesca,o.tipoEvidencia),...validarPalavrasChave(o.palavrasChave),...validarTipoOcorrencia(o.tipoOcorrencia,o.verificacaoPraiaRealizada),...validarSituacao(o.tipoOcorrencia,situacao),
     ...validarTumores(o.flagrante===true,o.tumores),...validarHoraOcorrencia(o.horaOcorrencia,o.flagrante===true)])
   if(o.especieCodigo!==null && !(ESPECIES as readonly string[]).includes(o.especieCodigo)) throw new Error('Código de espécie inválido.')
   if(!['REPRODUTIVO','NAO_REPRODUTIVO'].includes(o.tipoRegistro)) throw new Error('Natureza inválida.')
   for(const v of [o.comprimentoCasco,o.larguraCasco]) if(v!==null&&(!Number.isFinite(v)||v<0)) throw new Error('Biometria inválida; preserve o campo vazio quando não observado.')
-  if(o.projetoId!=='projeto-demo') throw new Error('O modo de treino não grava em projeto real.')
+}
+export function registrarOcorrencia(e: EstadoTreino, o: Omit<Ocorrencia,'id'|'ninhoId'|'criadoPor'|'criadoEm'|'atualizadoPor'|'atualizadoEm'|'versao'>,
+  situacao: Ninho['situacao'], m: AutoriaTreino,
+  transferenciaInicial: Omit<Transferencia,'id'|'ninhoId'|'projetoId'|'criadoPor'|'criadoEm'|'atualizadoPor'|'atualizadoEm'|'versao'> | null = null): EstadoTreino {
+  validarOcorrenciaEntrada(o,situacao)
+  if(!projetoPermitido(e,o.projetoId)) throw new Error('Projeto da ocorrência não corresponde ao acesso atual.')
   if((situacao==='P' || situacao==='T') && (!transferenciaInicial || transferenciaInicial.destino!==(situacao==='T'?'CERCADO':'PRAIA'))) throw new Error('Manejo transferido exige os dados da transferência inicial, sem assumir in situ.')
   const n=structuredClone(e); const id=m.novoId(); const ninhoId=o.tipoOcorrencia==='CD'?m.novoId():null
   if(n.ocorrencias.some(x=>x.id===id) || (ninhoId!==null && n.ninhos.some(x=>x.id===ninhoId))) throw new Error('Identificador local duplicado.')
   const registro:Ocorrencia={...structuredClone(o),...trilha(m),id,ninhoId}
   n.ocorrencias.push(registro)
   if(ninhoId) n.ninhos.push({...trilha(m),id:ninhoId,projetoId:o.projetoId,temporadaId:o.temporadaId,ocorrenciaId:id,
-    codigoInterno:'TREINO-'+ninhoId.slice(0,8),situacao,historicoNinho:null,problemaIncubacao:null,estadoAcompanhamento:'AGUARDANDO'})
+    codigoInterno:(e.contexto?'NINHO-':'TREINO-')+ninhoId.slice(0,8),situacao,historicoNinho:null,problemaIncubacao:null,estadoAcompanhamento:'AGUARDANDO'})
   const criado=novo(n,m,'ocorrencia',null,registro)
-  return ninhoId && transferenciaInicial ? registrarTransferencia(criado,{...transferenciaInicial,ninhoId,projetoId:o.projetoId},m) : criado
+  const resultado=ninhoId && transferenciaInicial ? registrarTransferencia(criado,{...transferenciaInicial,ninhoId,projetoId:o.projetoId},m) : criado
+  // Uma criação composta continua sendo a primeira versão persistida no servidor.
+  if(e.contexto && ninhoId) resultado.ninhos.find(x=>x.id===ninhoId)!.versao=1
+  return resultado
 }
 
 export function registrarTransferencia(e:EstadoTreino,t:Omit<Transferencia,'id'|'criadoPor'|'criadoEm'|'atualizadoPor'|'atualizadoEm'|'versao'>,m:AutoriaTreino):EstadoTreino {
@@ -62,7 +73,7 @@ export function registrarTransferencia(e:EstadoTreino,t:Omit<Transferencia,'id'|
   if(t.destino==='CERCADO' && !t.cercadoId?.trim()) throw new Error('Informe o identificador do cercado de treino.')
   if(t.destino==='PRAIA' && !t.localDestino.localKm?.trim()) throw new Error('Informe o trecho de destino no treino.')
   const n=structuredClone(e); const ninho=n.ninhos.find(x=>x.id===t.ninhoId)
-  if(!ninho || t.projetoId!==ninho.projetoId || t.projetoId!=='projeto-demo') throw new Error('Vínculo de transferência inválido.')
+  if(!ninho || t.projetoId!==ninho.projetoId || !projetoPermitido(e,t.projetoId)) throw new Error('Vínculo de transferência inválido.')
   const anterior=structuredClone(ninho); const registro:Transferencia={...structuredClone(t),...trilha(m),id:m.novoId()}
   if(n.transferencias.some(x=>x.id===registro.id)) throw new Error('Transferência duplicada.')
   n.transferencias.push(registro)
@@ -79,13 +90,14 @@ export function registrarAbertura(e:EstadoTreino,a:Omit<Abertura,'id'|'criadoPor
   if(manejo.historico!==null && !(HISTORICOS_NINHO as readonly string[]).includes(manejo.historico)) throw new Error('HIST_NINHO inválido.')
   const n=structuredClone(e); const ninho=n.ninhos.find(x=>x.id===a.ninhoId)
   const origem=n.ocorrencias.find(o=>o.id===ninho?.ocorrenciaId)
-  if(!ninho || !origem || a.projetoId!==ninho.projetoId || a.projetoId!=='projeto-demo') throw new Error('Vínculo de abertura inválido.')
+  if(!ninho || !origem || a.projetoId!==ninho.projetoId || !projetoPermitido(e,a.projetoId)) throw new Error('Vínculo de abertura inválido.')
   if(origem.especieCodigo!=='DC' && a.naoViaveis!==null) throw new Error('NAO_VIAVEIS somente para DC.')
   recusar(validarHistoricoNinho(origem.tipoOcorrencia,manejo.historico,a.observacoes))
   const existente=idExistente?n.aberturas.find(x=>x.id===idExistente && x.ninhoId===ninho.id):undefined
   if(idExistente && !existente) throw new Error('Registro de abertura não encontrado.')
   const anterior={ninho:structuredClone(ninho),abertura:existente?structuredClone(existente):null}
-  const registro:Abertura={...structuredClone(a),...trilha(m),id:existente?.id??m.novoId(),
+  if(e.contexto && !existente && n.aberturas.some(x=>x.ninhoId===ninho.id)) throw new Error('Escolha a abertura existente para complementar ou corrigir. Reabertura distinta exige protocolo da coordenação.')
+  const registro:Abertura={...structuredClone(a),...trilha(m),id:existente?.id??(e.contexto?ninho.id:m.novoId()),
     criadoPor:existente?.criadoPor??m.usuario,criadoEm:existente?.criadoEm??m.instante,versao:(existente?.versao??0)+1}
   if(existente) n.aberturas[n.aberturas.findIndex(x=>x.id===existente.id)]=registro
   else n.aberturas.push(registro)
@@ -99,7 +111,7 @@ export { SITUACOES }
 export function registrarVisita(e:EstadoTreino,v:Omit<Visita,'id'|'criadoPor'|'criadoEm'|'atualizadoPor'|'atualizadoEm'|'versao'>,m:AutoriaTreino):EstadoTreino {
   validarData(v.dataVisita,'Data de visita')
   const n=structuredClone(e),ninho=n.ninhos.find(x=>x.id===v.ninhoId)
-  if(!ninho||ninho.projetoId!==v.projetoId||v.projetoId!=='projeto-demo')throw new Error('Vínculo de visita inválido.')
+  if(!ninho||ninho.projetoId!==v.projetoId||!projetoPermitido(e,v.projetoId))throw new Error('Vínculo de visita inválido.')
   if(v.eventos.some(x=>!['predacao','mare','perda_marcacao','outro'].includes(x)))throw new Error('Evento de visita inválido.')
   const registro:Visita={...structuredClone(v),...trilha(m),id:m.novoId()}
   n.visitas.push(registro);return novo(n,m,'visita',null,registro)
@@ -114,4 +126,19 @@ export async function carregarTreino():Promise<EstadoTreino> {
 }
 export async function gravarTreino(proximo:EstadoTreino,base:number) {
   const repo=await import('../data/treino');await repo.salvarTreino(proximo,base)
+}
+
+export type CorrecaoAnimal=Pick<Ocorrencia,'especieCodigo'|'marcasEncontradas'|'marcasColocadas'|'marcasRetiradas'|'comprimentoCasco'|'larguraCasco'|'tumores'|'coletaMaterialBiologico'|'evidenciaInteracaoPesca'|'tipoEvidencia'|'palavrasChave'|'observacoes'|'numeroRegistro'>
+/** Correção auditada; nenhuma chave da localização original é recebida. */
+export function corrigirAnimal(e:EstadoTreino,ocorrenciaId:string,campos:CorrecaoAnimal,m:AutoriaTreino):EstadoTreino {
+  const n=structuredClone(e),o=n.ocorrencias.find(x=>x.id===ocorrenciaId)
+  if(!o||!projetoPermitido(e,o.projetoId))throw new Error('Ocorrência fora do projeto.')
+  if(o.numeroRegistro!==null&&campos.numeroRegistro!==o.numeroRegistro)throw new Error('Número já atribuído não será renumerado.')
+  if(campos.especieCodigo!=='DC'&&n.aberturas.some(a=>a.ninhoId===o.ninhoId&&a.naoViaveis!==null))throw new Error('Confira NAO_VIAVEIS na abertura antes de corrigir espécie diferente de DC; nada foi apagado.')
+  const ninho=n.ninhos.find(x=>x.id===o.ninhoId),antes={ocorrencia:structuredClone(o),ninho:ninho?structuredClone(ninho):null}
+  const corrigida={...o,...structuredClone(campos),versao:o.versao+1,atualizadoPor:m.usuario,atualizadoEm:m.instante}
+  validarOcorrenciaEntrada(corrigida,ninho?.situacao??null)
+  n.ocorrencias[n.ocorrencias.indexOf(o)]=corrigida
+  if(ninho){ninho.versao++;ninho.atualizadoPor=m.usuario;ninho.atualizadoEm=m.instante}
+  return novo(n,m,'animal',antes,{ocorrencia:corrigida,ninho:ninho??null})
 }

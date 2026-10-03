@@ -1,0 +1,15 @@
+# P03 — Aplicativo compartilhado em nuvem
+
+Dono: Codex, sequencial. Usuário esclareceu que deseja produto completo com dados salvos na nuvem, não somente login de treino. P02 absorvida por esta tarefa, sem senha em docs/código/Git. Publicação autorizada no projeto monitoramento-de-tartarugas Spark.
+
+Escopo antes de editar: src/{app,data,services,features,report}/*, src/App.tsx, src/main.tsx, src/styles/interface.css; src/domain/persistencia.ts e tipos.ts somente metadados técnicos, sem alteração científica; firestore.rules/indexes, firebase.json, .env.example/.env.local ignorado; tests/{security,services,nuvem,report,treino}; docs afetados e STATUS/BACKLOG/CHANGELOG/handoff/DECISIONS. Preservar treino existente separado; não migrar exemplos/dados locais automaticamente.
+
+Objetivo: complementos/correções auditados dos dados da tartaruga (inclusive espécie identificada na abertura) e atribuição posterior de N_REGISTRO sem renumerar, preservando origem; Auth real com usuário curto solicitado; projetos/membros provisionados administrativamente; entidades normalizadas, transação atômica com origem/projeção/auditoria, idempotência, versão e conflito explícito; persistência local de pendências distinta da confirmação servidor; relatórios de fonte real com mesmo snapshot e critérios. Somente CD cria ninho; origem imutável e derivados v2. Sem liberar regras por botão/interface, sem Blaze ou novos serviços pagos.
+
+Aceite antes da publicação final: dois clientes leem dado criado pelo outro; reenvio não duplica; versão antiga rejeitada com rascunho preservado; sem membro/acesso cruzado/escalada/origem sobrescrita negados por regras; cadastro→transferência→visita→abertura→PDF reais; offline parcial, definitivo somente servidor confirmado. Todos testes/tipos/build reais e emulador, smoke produção sem dados científicos fictícios no projeto real. Dúvidas científicas existentes mantidas rastreáveis, nunca inferidas.
+
+Estado: concluída e publicada; login e relatório confirmado verificados na URL pública, sem erros capturados. Área técnica e membro desativados sem apagar auditoria. Auth padrão configurado, Adriano provisionado campo, Firestore Standard Spark criado; regras finais e três índices READY em produção. Decisões D-019–D-021. Resultado real: suíte 188 passou/1 opt-in ignorado, tipos/build passaram; prova SDK real separada 1 passou, dois clientes da mesma conta em área técnica isolada. Login/prévia/download observados no navegador contra backend real. Evidências e falhas resolvidas em TESTING.md.
+
+Arquivos: src/{app/nuvem,app/treino,data/nuvem,data/pendencias,data/acesso,services/loginTeste,services/pwa,features/acesso/EntradaTeste,features/treino/Formularios}.ts(x), App/main, report/relatorio (contagens desconhecidas null), CSS, regras/índices/firebase.json/.env.example, tests/nuvem e loginTeste; docs afetados. Treino e trabalho anteriores preservados.
+
+Limites: conforme STATUS/TESTING; perguntas científicas não inferidas. Próximo passo: coordenação conferir layout PDF/listas/protocolo e validar GPS/offline em aparelho de campo. Alterações registradas em commit local; nenhum push.

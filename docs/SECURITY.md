@@ -7,7 +7,9 @@ botões (`AGENTS.md`).
 
 `firestore.rules` nega por padrão. Membro ativo exige uid/projeto_id/papel conhecidos; leituras isoladas. Coordenação pode criar/atualizar somente **outros** membros campo/consulta com schema/auditoria/versão; não cria coordenação, não promove a si mesma e não apaga membros. Projetos não podem ser listados/criados pelo cliente.
 
-**Todas as escritas de campo/projeções estão negadas**, inclusive para coordenação. A tabela abaixo descreve objetivo futuro, não autorização atual. Só liberar após schemas/transações/operações idempotentes/reservas serem testados. Sete testes reais no emulador local passaram; ver TESTING.md. Nenhuma produção validada.
+P03 libera escrita de campo somente por transação com operação nova e imutável, autorizada por membro campo/coordenacao. Cada origem/projeção/reserva exige vínculo com a operação atual do projeto, pré-imagem e caminho corretos. A operação confere autor do token, incremento da revisão e timestamp do servidor. Não reutilizar operação antiga, criar ninho sem CD, alterar origem, renumerar registro nem escrever projeção falsa. Contrato/evidências em [P03](tasks/P03-integracao-nuvem.md) e [D-019–D-021](DECISIONS.md).
+
+Conta publicada única: adriano, papel campo. Testes de papéis adicionais pertencem somente ao emulador; nenhuma conta extra criada. A autoria é compartilhada entre aparelhos que usam essa conta. Dados sintéticos de prova real ficam em projeto lógico técnico separado, nunca nas fichas do projeto principal.
 
 ## Papéis alvo
 
@@ -30,7 +32,7 @@ Um usuário só acessa um projeto se existir `projetos/{projetoId}/membros/{uid}
 - IDs de documento **não** são segredos.
 - Validação de domínio é feita no app (`domain/*`), mas as regras devem impedir gravação cruzada entre
   projetos e operações não autorizadas.
-- Projeções de consulta em `projetos/{projetoId}/consultas/{linhaId}` seguem a **mesma** checagem de membro
+- Projeções de consulta em `projetos/{projetoId}/consultas/{ninhoId}` seguem a **mesma** checagem de membro
   ativo do projeto: o usuário não lê projeção de outro projeto, mesmo sabendo o `projetoId`. A projeção não
   amplia o que o papel `consulta` já pode ver; só torna a leitura do relatório indexada.
 

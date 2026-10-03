@@ -1,17 +1,17 @@
 # Publicação
 
-Em 02/10/2026, usuário autorizou publicar o treino. Site: https://monitoramento-de-tartarugas.web.app . Projeto monitoramento-de-tartarugas, Spark confirmado no console. Somente Hosting publicado; sem deploy de regras/índices, sem banco/Auth oficial configurado no build. Integração oficial E05–E10 e validação científica continuam pendentes.
+P03 autorizada pelo usuário: integração real em monitoramento-de-tartarugas, Firestore Standard/Hosting Spark. Usuário único adriano; senha provisionada no Auth fora dos arquivos, não documentar nem incorporar no cliente. Auth email/senha, membro campo e projeto criados administrativamente. Fuso científico permanece null até confirmação; datas de campo são digitadas como noite, sem conversão automática. Auditoria técnica usa ISO UTC e confirmação timestamp do servidor.
 
-Republicação do treino, após testes/tipos/build, com a conta autorizada:
+Não usar treino-louise. Todos comandos reais precisam projeto e conta explícitos:
 
 ```powershell
+firebase deploy --only firestore:rules,firestore:indexes --project monitoramento-de-tartarugas --account adrianoartoniomareante@gmail.com --non-interactive
 firebase deploy --only hosting --project monitoramento-de-tartarugas --account adrianoartoniomareante@gmail.com --non-interactive
 ```
 
-Hosting serve dist, exclui *.map e arquivos ocultos, preserva cache versionado e SPA. Dados de localhost não são migrados: cada origem/navegador mantém seu treino local. Faça exportação JSON; restauração/importação ainda não existe. Procedimentos abaixo são para integração oficial futura, não etapas realizadas nesta publicação.
+Hosting serve dist, SPA/cache e exclui *.map/arquivos ocultos. Config pública em .env.local ignorado; VITE_PROJETO_ID=monitoramento-de-tartarugas e VITE_LOGIN_DOMINIO=monitoramento-de-tartarugas.web.app habilitam a entrada única. Nunca commitar senha, token ou credencial administrativa. Fechar abas antigas e reabrir após atualização do worker, quando não houver formulário em edição.
 
-Pré-requisitos: projeto Firebase criado, Auth (e-mail/senha) habilitado, Firestore criado (modo produção),
-Hosting configurado. **Não ativar Blaze**.
+Dados sintéticos de prova real ficam em projetos/validacao-p03-interna (mesmo Firebase, projeto lógico separado), com rótulo explícito; projeto principal permanece sem essas fichas. Depois desativar projeto/vínculo técnico administrativamente, preservando auditoria. Não há migração automática de treino/localhost; exporte cópia JSON. Importação/restauração e administração de cadastros não estão na interface.
 
 ## 1. Configurar variáveis de ambiente
 
@@ -67,7 +67,7 @@ O app cliente **não** cria esse registro com papel `coordenacao`. Isso evita au
 
 1. Acessar URL do Hosting.
 2. Login com primeiro usuário.
-3. Confirmar projeto/temporada/praias provisionados administrativamente (CRUD cliente ainda não entregue).
+3. Confirmar projeto/membro; temporadas/praias/evidências dependem de informações da coordenação, não de códigos inventados.
 4. Testar fluxo CD → ninho → transferência → visita → abertura → relatório.
 5. Verificar regras no emulador (negado por padrão, isolamento por projeto).
 6. Gerar PDF offline → deve aparecer "parcial".
@@ -79,3 +79,7 @@ Reverter para versão anterior no Firebase Hosting (histórico de versões) ou r
 ## Limitações
 
 Sem Blaze. Uso gratuito sujeito às cotas do Spark. PDF é gerado no cliente (não consome Functions).
+
+## P03 publicada — 02/10/2026
+
+`firebase deploy --only firestore:rules,hosting --project monitoramento-de-tartarugas --account adrianoartoniomareante@gmail.com --non-interactive` passou. URL https://monitoramento-de-tartarugas.web.app conferida: login único adriano, dados confirmados no servidor, prévia ECLOS vazia e exportações disponíveis; sem erros capturados. Senha não registrada em arquivos. Área técnica validacao-p03-interna e membro ativo=false via API (HTTP 200); documentos e auditoria preservados. Prova real/índices e limites em TESTING/STATUS.

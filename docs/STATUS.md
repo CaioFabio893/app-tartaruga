@@ -1,29 +1,21 @@
 # Status — 02/10/2026
 
-Codex assumiu a implementação a pedido do usuário após a cota do OpenCode. Execução sequencial; visual Claude preservado. R01/R02 existentes foram mantidas.
+P03: aplicativo compartilhado em nuvem autorizado pelo usuário, com **um único acesso adriano**. Dono Codex, execução sequencial; visual Claude preservado. Build final P03 e regras publicados e conferidos; endereço https://monitoramento-de-tartarugas.web.app .
 
-## Entrega atual
+## Implementado
 
-- E02: relatório de treino por período inclusivo e critério OCORR/ECLOS/ABERT; prévia e PDF/JSON/CSV usam o mesmo snapshot. A4 paginado, históricos, null distinto de zero, derivados v2. Layout ainda é proposta para a equipe.
-- E03: interface responsiva com ninhos, ocorrências, mapa, relatórios e acesso.
-- E04-base: login email/senha e confirmação online de membro/projeto; regras negam por padrão. Escritas de campo e projeções no Firestore continuam bloqueadas.
-- E05–E07 local: somente CD cria ninho; transferência, visita, eclosão/abertura e correção auditada. IndexedDB atômico, revisão por operação, conflito entre abas rejeitado com formulário preservado; backup integral JSON.
-- E08 local: GPS por botão, entrada manual e esquema SVG com lista equivalente. Não é mapa de navegação. Testado por simulação, sem capturar localização real.
-- E09-cache: interface de produção e geração PDF disponíveis offline após cache instalado; atualização aguarda sem descartar formulário.
-- R03: validação de datas/contagens/estrutura local, UTC zero observado aceito, totais ausentes null, nenhuma média percentual inventada, CSV vazio com cabeçalho e avisos de ambiguidade.
+- Auth email/senha padrão; membro campo provisionado administrativamente, sem auto-administração. Firestore Standard São Paulo + Hosting Spark; sem faturamento/serviços fora do escopo.
+- Ocorrência/CD+ninho e transferência inicial atômicos; transferências/visitas, eclosão/abertura e correções com auditoria. Complemento de espécie/animal e primeira atribuição de N_REGISTRO, sem renumerar. Origem imutável; derivados v2.
+- Revisão global, versões por documento, operação nova imutável, pré-imagem e reenvio idempotente. Reservas de números por escopo técnico provisório. Regras negam acesso sem membro, papel falso, acesso cruzado e alteração de origem.
+- Projeção técnica v2 mínima por ninho, três datas indexadas. Relatório inclusivo por OCORR/ECLOS/ABERT, PDF/JSON/CSV do mesmo snapshot; confirmado somente após consulta de servidor e sem pendências. Offline/parcial explícito.
+- IndexedDB por usuário/projeto, uma pendência de cada vez, recuperação e conflito explícito. Adotar remoto arquiva o rascunho exportável; não faz mescla automática. Treino anterior permanece separado.
 
-**Modo de treino:** não cadastrar fichas oficiais. Salvo no aparelho não significa sincronizado. Todos os relatórios desta interface são parciais/demonstrativos, mesmo com login. O login não transforma dados de treino em dados do projeto.
+## Evidências atuais
 
-## Verificação
+Validação final: 188 testes passaram no emulador/fake-indexeddb, 1 opt-in ignorado; tipos e build passaram. Prova real separada: 1 teste passou com dois clientes da mesma conta. Hosting e regras publicados; login e relatório confirmado conferidos na URL pública, sem erros capturados. Área técnica e seu vínculo desativados, registros/auditoria preservados; projeto principal sem fichas sintéticas. Resultados finais em [TESTING.md](TESTING.md) e [P03](tasks/P03-integracao-nuvem.md).
 
-Resultados e reprodução em [TESTING.md](TESTING.md). Revisão final concluída: `npx vitest run` (165 passaram / 7 ignorados sem emulador), `npx tsc --noEmit` e `npx vite build` passaram após acabamento do PDF. Sete testes de regras passaram separadamente no emulador demo. Amostra final A4 renderizada e revisada.
+## Próximo passo e limites
 
-Já executado: 165 testes passaram e 7 testes de regras foram ignorados na suíte sem emulador; os mesmos 7 passaram separadamente no Firestore Standard local demo. Tipos/build passaram; npm audit retornou zero vulnerabilidades. Edge validou downloads, celular 390px, IndexedDB, conflito entre abas, login local, GPS simulado, uso offline e atualização com rascunho preservado. Nenhum Firebase de produção ou aparelho físico validado.
+P03 concluída e publicada. Próximo passo: equipe conferir o layout do PDF e testar GPS/offline no aparelho de campo. Manter perguntas científicas em [DECISIONS.md](DECISIONS.md)/[DOMAIN_RULES.md](DOMAIN_RULES.md): listas/unidades/fuso, numeração e reabertura. Nova reabertura distinta bloqueada até protocolo; complementos da abertura existente preservam histórico na auditoria. Layout PDF proposto aguarda validação da coordenação; GPS físico/instalação em aparelhos não testados. Spark sujeito às cotas, não ilimitado.
 
-## Próximo passo
-
-P01: treino publicado a pedido do usuário em https://monitoramento-de-tartarugas.web.app, projeto separado Spark. Somente Hosting; nenhuma integração oficial liberada. Escopo/evidências/limite do teste de download em [P01](tasks/P01-hosting-treino.md). Dados permanecem por aparelho/navegador/origem; localhost não migra automaticamente.
-
-Integrar dados oficiais E05–E07/E09/E10: transações, operação idempotente, reservas, projeções e confirmação de sincronização antes de liberar escritas. Resolver perguntas em [DECISIONS.md](DECISIONS.md) e [DOMAIN_RULES.md §8](DOMAIN_RULES.md). Validar exemplar PDF e protocolo GPS em campo. Não publicar integração oficial sem validação.
-
-Escopos e arquivos: [BACKLOG.md](BACKLOG.md), [tarefas](tasks/). Continuação: [handoffs/ATUAL.md](handoffs/ATUAL.md).
+Continuação: [handoffs/ATUAL.md](handoffs/ATUAL.md); escopo/dono: [BACKLOG.md](BACKLOG.md).

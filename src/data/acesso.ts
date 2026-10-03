@@ -3,7 +3,7 @@ import { obterFirebase } from '../services/firebase'
 
 export interface AcessoProjeto { id: string; nome: string; papel: 'consulta' | 'campo' | 'coordenacao' }
 let banco: ReturnType<typeof getFirestore> | null = null
-function obterBanco() {
+export function obterBanco() {
   if (!banco) {
     const { app, emuladores } = obterFirebase(); banco = getFirestore(app)
     if (emuladores) connectFirestoreEmulator(banco, '127.0.0.1', 8080)
