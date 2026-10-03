@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-03 — P04 mapa/GPS/relatório
+
+- Leaflet/OpenStreetMap online com atribuição, posição atual coerente e margem de erro disponível. GPS no destino e captura de melhor leitura cancelável; precisão não garantida. Casco em cm conforme confirmação do usuário.
+- Relatório padrão de todos os ninhos, incluindo sem datas; opção por período preservada. PDF com todos os campos em tabelas legíveis, condições/motivos e códigos explicados; sem destino JSON/null/UID como nome. Insumos e fórmulas preservados.
+- 195 testes passaram/1 opt-in ignorado; tipos/build e Hosting passaram. Amostra A4 renderizada, PDF público baixado e mapa/consulta de servidor conferidos. Evidências/arquivos/limites em tasks/P04-mapa-gps-relatorio.md.
+
 ## 2026-10-02 — P03 aplicativo em nuvem publicado
 
 - Acesso único adriano, Auth real e Firestore Standard/Hosting Spark. Cadastros, transferências, visitas, abertura e complementos auditados, origem imutável e derivados v2.

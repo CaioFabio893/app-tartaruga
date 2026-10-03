@@ -83,3 +83,7 @@ Sem Blaze. Uso gratuito sujeito às cotas do Spark. PDF é gerado no cliente (n�
 ## P03 publicada — 02/10/2026
 
 `firebase deploy --only firestore:rules,hosting --project monitoramento-de-tartarugas --account adrianoartoniomareante@gmail.com --non-interactive` passou. URL https://monitoramento-de-tartarugas.web.app conferida: login único adriano, dados confirmados no servidor, prévia ECLOS vazia e exportações disponíveis; sem erros capturados. Senha não registrada em arquivos. Área técnica validacao-p03-interna e membro ativo=false via API (HTTP 200); documentos e auditoria preservados. Prova real/índices e limites em TESTING/STATUS.
+
+## P04 — publicada em 03/10/2026
+
+Publicado somente Hosting após validação: comando de P03 com --only hosting passou. Regras e dados existentes preservados; consulta/download e mapa conferidos na URL pública. Mapa-base depende de conexão OpenStreetMap, sem cobrança Google/Blaze; GPS requer HTTPS e permissão do aparelho. Se houver atualização de cache pendente, salvar formulários, fechar abas e reabrir.

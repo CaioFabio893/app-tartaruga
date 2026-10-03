@@ -100,7 +100,7 @@ export async function consultarRelatorioNuvem(contexto:Contexto,consulta:Entrada
     const antes=(await getDocFromServer(doc(db,raiz))).data()
     if(antes?.ativo!==true)throw new Error('Projeto indisponível.')
     const campo=`datas.${consulta.criterio}`
-    const [periodo,ausentes]=await Promise.all([
+    const [periodo,ausentes]=consulta.todos ? [await lerColecao(`${raiz}/consultas`,db), []] : await Promise.all([
       lerColecao(`${raiz}/consultas`,db,[where(campo,'>=',consulta.inicio),where(campo,'<=',consulta.fim),orderBy(campo)]),
       lerColecao(`${raiz}/consultas`,db,[where(campo,'==',null)])])
     const linhas=[...periodo,...ausentes].filter(corresponde)
@@ -117,9 +117,10 @@ export async function consultarRelatorioNuvem(contexto:Contexto,consulta:Entrada
     const depois=(await getDocFromServer(doc(db,raiz))).data()
     if(antes.revisao_dados!==depois?.revisao_dados)continue
     const r=montarRelatorio({projetoNome:contexto.nome,consulta,dados:detalhes,fonte:{demonstracao:false,online:true,sincronizacaoConfirmada:true,conjuntoCompleto:true},geradoEm:new Date().toISOString()})
+    if(consulta.todos&&r.exclusoes)r.exclusoes.outrosFiltros=periodo.length-linhas.length
     // Fora do período não foi enumerado: não apresentar uma contagem global inventada.
-    r.avisos.push(`Consulta por período no servidor. Sem data: ${r.exclusoes?.dataAusente??0}; datas divergentes: ${r.exclusoes?.dataAmbigua??0}, no mesmo projeto e filtros. Registros fora do período não foram contados.`)
-    if(r.exclusoes)r.exclusoes={...r.exclusoes,foraPeriodo:null,outrosFiltros:null}
+    if (!consulta.todos) r.avisos.push(`Consulta por período no servidor. Sem data: ${r.exclusoes?.dataAusente??0}; datas divergentes: ${r.exclusoes?.dataAmbigua??0}, no mesmo projeto e filtros. Registros fora do período não foram contados.`)
+    if(!consulta.todos && r.exclusoes)r.exclusoes={...r.exclusoes,foraPeriodo:null,outrosFiltros:null}
     return r
   }
   throw new Error('Dados mudaram durante a consulta. Gere a prévia novamente; nenhum PDF definitivo foi emitido.')

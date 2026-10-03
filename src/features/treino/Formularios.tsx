@@ -20,7 +20,7 @@ function local(v:Valores,p=''):Localizacao {
   const datum=vazio(v[p+'datum']) as Localizacao['datum']
   if((latitude!==null || longitude!==null) && !datum) throw new Error('Informe o datum das coordenadas.')
   return {praiaId:null,praiaCodigo:vazio(v[p+'praia']),localKm:vazio(v[p+'km']),bairro:vazio(v[p+'bairro']),referencia:vazio(v[p+'referencia']),latitude,longitude,
-    datum,fonteGps:latitude!==null||longitude!==null?'manual':null,precisaoGpsM:null,capturadoEm:null}
+    datum,fonteGps:v[p+'fonteGps']==='dispositivo'?'dispositivo':latitude!==null||longitude!==null?'manual':null,precisaoGpsM:v[p+'fonteGps']==='dispositivo'?numero(v[p+'precisaoGpsM']):null,capturadoEm:v[p+'fonteGps']==='dispositivo'?vazio(v[p+'capturadoEm']):null}
 }
 function autoria(estado:EstadoTreino) {return {usuario:estado.contexto?.usuario??'usuario-treino-local',instante:new Date().toISOString(),novoId:()=>crypto.randomUUID()}}
 function Campo({nome,chave,v,mudar,tipo='text',opcoes}: {nome:string;chave:string;v:Valores;mudar:(k:string,val:string)=>void;tipo?:string;opcoes?:readonly (string|readonly [string,string])[]}) {
@@ -36,12 +36,19 @@ function Local({v,mudar,p=''}:{v:Valores;mudar:(k:string,val:string)=>void;p?:st
     <Campo nome={p?'Longitude de destino':'Longitude original'} chave={p+'longitude'} v={v} mudar={mudar} tipo="number"/>
     <Campo nome={p?'Datum de destino':'Datum original'} chave={p+'datum'} v={v} mudar={mudar} opcoes={['SIRGAS2000','WGS84']}/></>
 }
+function GPSDestino({v,mudar}:{v:Valores;mudar:(k:string,val:string)=>void}) {
+  const [ocupado,setOcupado]=useState(false),[erro,setErro]=useState('');const controle=useRef<AbortController|null>(null)
+  useEffect(()=>()=>controle.current?.abort(),[])
+  const manual=(k:string,val:string)=>{if(['destino-latitude','destino-longitude','destino-datum'].includes(k)){controle.current?.abort();mudar('destino-fonteGps','');mudar('destino-precisaoGpsM','');mudar('destino-capturadoEm','')}mudar(k,val)}
+  async function buscar(){const c=new AbortController();controle.current=c;setOcupado(true);setErro('');try{const g=await capturarGPS(undefined,{signal:c.signal});if(!c.signal.aborted)for(const [k,val] of Object.entries(g))mudar('destino-'+k,String(val))}catch(e){if(!c.signal.aborted)setErro(e instanceof Error?e.message:'GPS indisponível.')}finally{if(controle.current===c)setOcupado(false)}}
+  return <><Local v={v} mudar={manual} p="destino-"/><div className="gps-destino"><button type="button" className="btn" disabled={ocupado} onClick={()=>void buscar()}>{ocupado?'Buscando melhor leitura…':'Capturar latitude e longitude do destino'}</button>{ocupado&&<button type="button" className="btn" onClick={()=>controle.current?.abort()}>Cancelar captura</button>}{v['destino-fonteGps']==='dispositivo'&&<p>GPS WGS84: margem de erro informada pelo aparelho {v['destino-precisaoGpsM']} m. Coordenadas preservadas sem arredondar.</p>}{erro&&<p role="alert">{erro}</p>}<p className="ajuda">Fique no local exato do destino, ao ar livre. A captura busca a melhor leitura por até 30 segundos. Confira a margem de erro; o GPS sozinho pode não localizar os ovos.</p></div></>
+}
 function CamposTransferencia({v,mudar,cercado}:{v:Valores;mudar:(k:string,val:string)=>void;cercado:boolean}) {
   return <><Campo nome="Data de transferência (campo)" chave="dataTransferencia" v={v} mudar={mudar} tipo="date"/>
     <Campo nome="Tempo de transferência (TEMP_TRANSF)" chave="tempoTransferencia" v={v} mudar={mudar} opcoes={TEMPOS_TRANSFERENCIA}/>
     <Campo nome="Ovos observados na transferência (OVOS_TRANS)" chave="ovosTransferencia" v={v} mudar={mudar} tipo="number"/>
     {cercado&&<><Campo nome="Identificador do cercado fornecido pela equipe" chave="cercadoId" v={v} mudar={mudar}/><Campo nome="Número dentro do cercado (N_NINHO)" chave="numeroNinhoCercado" v={v} mudar={mudar}/></>}
-    <Local v={v} mudar={mudar} p="destino-"/>
+    <GPSDestino v={v} mudar={mudar}/>
     <Campo nome="Observações da transferência" chave="obsTransferencia" v={v} mudar={mudar} tipo="textarea"/></>
 }
 function transferencia(v:Valores,cercado:boolean,estado:EstadoTreino) {
@@ -92,11 +99,11 @@ export function NovaOcorrencia({estado,aoSalvar,cancelar}:PropsTreino) {
     {estado.contexto&&<Campo nome="Identificador da temporada fornecido pela equipe (opcional)" chave="temporada" v={v} mudar={mudar}/>}
     <Campo nome="Verificação da praia realizada" chave="verificada" v={v} mudar={mudar} opcoes={simNao}/>
     {cd&&<Campo nome="Situação de conservação" chave="situacao" v={v} mudar={mudar} opcoes={SITUACOES}/>}
-    <Local v={v} mudar={mudar}/></div><div className="acoes"><button className="btn" type="button" disabled={capturando} onClick={()=>void localizar()}>{capturando?'Obtendo localização…':'Capturar localização original'}</button>{gps&&<span className="ajuda">GPS WGS84 · precisão {gps.precisaoGpsM} m · {gps.capturadoEm}</span>}</div>{erroGps&&<p className="mensagem erro" role="alert">{erroGps}</p>}<p className="ajuda">A data informada já deve corresponder à noite de campo. Desova localizada depois pode ter data de ocorrência vazia. A localização original não poderá ser sobrescrita por manejo.</p>
+    <Local v={v} mudar={mudar}/></div><div className="acoes"><button className="btn" type="button" disabled={capturando} onClick={()=>void localizar()}>{capturando?'Buscando melhor leitura…':'Capturar localização original'}</button>{capturando&&<button type="button" className="btn" onClick={()=>controle.current?.abort()}>Cancelar captura</button>}{gps&&<span className="ajuda">GPS WGS84 · margem de erro {gps.precisaoGpsM} m · {gps.capturadoEm}</span>}</div>{erroGps&&<p className="mensagem erro" role="alert">{erroGps}</p>}<p className="ajuda">A data informada já deve corresponder à noite de campo. Desova localizada depois pode ter data de ocorrência vazia. A localização original não poderá ser sobrescrita por manejo.</p>
     <h3>Tartaruga</h3><div className="filtros"><Campo nome="Espécie" chave="especie" v={v} mudar={mudar} opcoes={ESPECIES}/><Campo nome="Flagrante da tartaruga" chave="flagrante" v={v} mudar={mudar} opcoes={simNao}/>
     {v.flagrante==='true'&&<><Campo nome="Hora da ocorrência (sem horário de verão)" chave="horaOcorrencia" v={v} mudar={mudar} tipo="time"/><Campo nome="Tumores" chave="tumores" v={v} mudar={mudar} opcoes={RESPOSTA_TUMORES}/>
     <Campo nome="Marcas encontradas" chave="marcasEncontradas" v={v} mudar={mudar}/><Campo nome="Marcas colocadas" chave="marcasColocadas" v={v} mudar={mudar}/><Campo nome="Marcas retiradas" chave="marcasRetiradas" v={v} mudar={mudar}/>
-    <Campo nome="Comprimento do casco (unidade a confirmar)" chave="comprimento" v={v} mudar={mudar} tipo="number"/><Campo nome="Largura do casco (unidade a confirmar)" chave="largura" v={v} mudar={mudar} tipo="number"/></>}
+    <Campo nome="Comprimento do casco (cm)" chave="comprimento" v={v} mudar={mudar} tipo="number"/><Campo nome="Largura do casco (cm)" chave="largura" v={v} mudar={mudar} tipo="number"/></>}
     <Campo nome="Coleta biológica (itens separados por vírgula; vazio se não observada)" chave="coleta" v={v} mudar={mudar}/>
     <Campo nome="Evidência de interação com pesca" chave="pesca" v={v} mudar={mudar} opcoes={simNao}/>
     {v.pesca==='true'&&<Campo nome="Tipo de evidência fornecido pela coordenação" chave="tipoEvidencia" v={v} mudar={mudar}/>}
@@ -152,7 +159,7 @@ export function CorrigirAnimal({estado,aoSalvar,cancelar,ocorrenciaId}:PropsTrei
     <Campo nome="Espécie" chave="especie" v={v} mudar={mudar} opcoes={ESPECIES}/>
     <Campo nome="Número atribuído pelo controle geral" chave="numeroRegistro" v={v} mudar={mudar}/>
     <Campo nome="Marcas encontradas" chave="marcasEncontradas" v={v} mudar={mudar}/><Campo nome="Marcas colocadas" chave="marcasColocadas" v={v} mudar={mudar}/><Campo nome="Marcas retiradas" chave="marcasRetiradas" v={v} mudar={mudar}/>
-    <Campo nome="Comprimento do casco (unidade a confirmar)" chave="comprimento" v={v} mudar={mudar} tipo="number"/><Campo nome="Largura do casco (unidade a confirmar)" chave="largura" v={v} mudar={mudar} tipo="number"/>
+    <Campo nome="Comprimento do casco (cm)" chave="comprimento" v={v} mudar={mudar} tipo="number"/><Campo nome="Largura do casco (cm)" chave="largura" v={v} mudar={mudar} tipo="number"/>
     <Campo nome="Tumores" chave="tumores" v={v} mudar={mudar} opcoes={RESPOSTA_TUMORES}/>
     <Campo nome="Coleta biológica (itens separados por vírgula)" chave="coleta" v={v} mudar={mudar}/>
     <Campo nome="Evidência de interação com pesca" chave="pesca" v={v} mudar={mudar} opcoes={simNao}/><Campo nome="Tipo de evidência fornecido pela coordenação" chave="tipoEvidencia" v={v} mudar={mudar}/>

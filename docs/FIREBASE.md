@@ -47,3 +47,5 @@ Três índices P03 por projeto+data+ID; índice R02 anterior preservado para nã
 - O app **não** presume conexão sempre disponível: ver `OFFLINE.md`.
 - Mapa: atribuição de tiles e termos do provedor devem ser registrados quando definido (D-008). O app
   funciona sem mapa.
+
+P04: base OpenStreetMap online gratuita com atribuição visível, política https://operations.osmfoundation.org/policies/tiles/ . Leaflet local instalado, sem prefetch/cache em massa ou endpoint Google pago. Indisponibilidade/offline mantém lista de coordenadas; não há promessa de mapa offline ou cobertura contínua.

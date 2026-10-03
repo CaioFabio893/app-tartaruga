@@ -84,3 +84,9 @@ Observação Git: diff --check apontou apenas linhas vazias finais em src/App.ts
 Limites atuais: GPS real/instalação física e rede offline em aparelho não testados nesta P03; PDF é layout proposto até conferência da equipe. Reabertura distinta bloqueada; perguntas científicas em DECISIONS/DOMAIN_RULES. Carga inicial lê o projeto/históricos e consome cotas Spark. Relatório não promete contagem global fora do intervalo. Site pós-publicação conferido conforme DEPLOY/P03.
 
 Pós-publicação: deploy de firestore:rules,hosting passou; URL pública autenticou adriano, exibiu dados confirmados e prévia ECLOS vazia com PDF/JSON/CSV disponíveis; nenhum erro de console capturado. PDF baixado inspecionado com pdf-lib: uma página A4 (595,28 × 841,89 pt), metadados de critério ECLOS e sincronização confirmada. Área validacao-p03-interna e membro desativados via API (HTTP 200), sem excluir fontes/auditoria.
+
+## P04 — 03/10/2026
+
+`$env:FIRESTORE_EMULATOR_HOST='127.0.0.1:8080'; npx vitest run`: 195 passaram/1 opt-in ignorado, 19 arquivos. `npx tsc --noEmit` e `npx vite build` passaram após últimos ajustes. Casos novos: todos inclui múltiplos ninhos/sem datas/filtros/isolamento; dados de período mantidos; todos os campos do manual no PDF; vazio/zero/indeterminado distintos; GPS conserva melhor leitura e cancela sem aplicar. Mock GPS não é precisão física.
+
+Amostra fictícia gerada pelo teste com P04_GRAVAR_EXEMPLO=1; 19 páginas A4 renderizadas e inspecionadas, incluindo texto longo. Fontes de substituição Poppler advertidas, sem falha de renderização nas páginas conferidas. PDF público de cinco páginas baixado e conferido: nome Adriano, nenhum UID/destino JSON/null, campos de transferência legíveis. Mapa geográfico, atribuição, botão GPS de destino e leitura confirmada de 1 ninho verificados no navegador público, sem erros de console. Nenhum dado real escrito; formulário cancelado. Comandos/deploy/limites em tarefa P04 e DEPLOY.

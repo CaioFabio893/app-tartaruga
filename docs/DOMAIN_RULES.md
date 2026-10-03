@@ -205,7 +205,7 @@ iniciais saem como texto, sem aspas implícitas quebrando o CSV.
 
 | # | Dúvida | Base | Efeito se não respondida |
 | --- | --- | --- | --- |
-| 01 | Os anexos citados (protocolo de marcação e biometria; pranchas de identificação das espécies) existem em versão impressa/digital? | p. 2 | biometria fica sem unidade oficial; o app pede unidade no campo de texto com aviso |
+| 01 | Os anexos citados (protocolo de marcação e biometria; pranchas de identificação das espécies) existem em versão impressa/digital? | p. 2 | cm confirmado pelo usuário (D-022); protocolo de medição ainda pendente |
 | 02 | `TEMP_TRANSF` `D` ("> 24 h") e `E` ("> 15 dias") se sobrepõem. Qual precedência usar em classificação automática? | p. 4 | manter seleção explícita; D já cobre 24 h a 15 dias, não há lacuna |
 | 03 | Qual nome o controle geral da campanha usa no intercâmbio: `OVOS_TRANS` ou `OVOS_TRANSF`, `OVOS_FURAD` ou `OVOS_FUR`? | manual usa TRANS/FURAD; projeto registrou os pares | exportação emite o nome do manual e uma coluna de alias opcional |
 | 04 | Como registrar "houve problema com o ninho durante a incubação" para acionar a exceção do `OVOS_TOT`? O manual não define código. | p. 6 | o app usa `problema_incubacao` booleano explícito (acréscimo do projeto) e, se `null`, não aplica a exceção |
@@ -219,4 +219,4 @@ iniciais saem como texto, sem aspas implícitas quebrando o CSV.
 `data_referencia_noite` (3.2, 3.3) · criação de ninho só com `CD` (2.1) · verificação de praia para `SD` (2.2) ·
 imutabilidade da origem e posição atual derivada (4.1, 4.2) · exceção do `OVOS_TOT` (5.2) · vazio × zero (1.2,
 5.1) · pré-condições de `PCT_VIVOS` (5.3) · `TEMP_INCUB` (5.4) · condicionais do flagrante (6.1) ·
-`HIST_NINHO` só com `CD` (6.3) · exclusão de datas vazias no relatório (7.2).
+`HIST_NINHO` só com `CD` (6.3) · exclusão de datas vazias no relatório por período (7.2); modo todos P04 inclui sem data, sem alterar a fonte.

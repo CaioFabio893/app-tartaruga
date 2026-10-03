@@ -53,6 +53,14 @@ describe.skipIf(!process.env.FIRESTORE_EMULATOR_HOST)('nuvem real no emulador, d
     }
     const r=await consultarRelatorioNuvem(ctx,{projetoId:'p1',criterio:'OCORR',inicio:'2026-10-03',fim:'2026-10-03'},db);expect(r.registros).toHaveLength(0)
   })
+  it('todos no servidor inclui vários ninhos e sem datas, preservando isolamento',async()=>{
+    const db=banco('campo');const base=await carregarNuvem(estado().contexto!,db);let i=900;const m={usuario:'campo',instante:'2026-10-02T22:00:00Z',novoId:()=>`todos-${++i}`}
+    const n=registrarOcorrencia(base,{...ocorrenciaBase,numeroRegistro:null,dataOcorrencia:null,noiteReferencia:null},'I',m);await gravarNuvem(base,n,db)
+    const r=await consultarRelatorioNuvem(base.contexto!,{projetoId:'p1',criterio:'OCORR',inicio:null,fim:null,todos:true},db)
+    expect(r.registros).toHaveLength(2);expect(r.registros.some(n=>n.linha.dataCriterio===null)).toBe(true);expect(r.parcial).toBe(false)
+    const filtrado=await consultarRelatorioNuvem(base.contexto!,{projetoId:'p1',criterio:'OCORR',inicio:null,fim:null,todos:true,filtros:{especieCodigo:'NI'}},db);expect(filtrado.registros).toHaveLength(0);expect(filtrado.exclusoes?.outrosFiltros).toBe(2)
+    await expect(consultarRelatorioNuvem(base.contexto!,{projetoId:'outro',criterio:'OCORR',inicio:null,fim:null,todos:true},db)).rejects.toThrow('fora do projeto')
+  })
   it('CD com transferência inicial e reservas é atômico; número repetido não duplica',async()=>{
     const db=banco('campo'),base=await carregarNuvem(estado().contexto!,db);let i=100;const m={usuario:'campo',instante:'2026-10-02T22:00:00Z',novoId:()=>`id-${++i}`}
     const n=registrarOcorrencia(base,{...ocorrenciaBase,numeroRegistro:'0007'},'T',m,{...transferenciaBase,numeroNinhoCercado:'0002'})

@@ -1,9 +1,7 @@
-# Continuação — Codex / P03
+# Continuação — Codex / P04
 
-02/10/2026. Usuário quer aplicativo real em nuvem e apenas acesso adriano. Implementação, emulador e prova real concluídos; Hosting final publicado e conferido na URL pública. Conta/projeto explícitos em DEPLOY.md; não usar treino-louise. Sem senha nos arquivos, sem Blaze, sem migração de exemplos.
+03/10/2026. P04 concluída e publicada no mesmo Hosting, dados/regras preservados. Ler STATUS, BACKLOG e tasks/P04-mapa-gps-relatorio.md. Fontes: report/apresentacao+pdf, mapa/MapaCoordenadas, services/gps e Formulario GPSDestino; relatório todos em consultas/nuvem/App. D-022 registra cm confirmado pelo usuário e mapas/GPS.
 
-Ler STATUS, BACKLOG e tasks/P03-integracao-nuvem.md. Entradas: src/app/nuvem.ts, src/data/{nuvem,pendencias}.ts, src/app/treino.ts, App/Formularios, firestore.rules. D-019–D-021 explicam operação transacional/CAS, projeção mínima, referências e complementos auditados. Fórmula científica v2 preservada.
+195 testes passaram/1 opt-in ignorado; tipos/build passaram. PDF fictício 19 páginas renderizadas, PDF público de cinco páginas baixado/conferido; mapa geográfico e consulta confirmada de 1 ninho observados sem erros. Nenhum registro real modificado. Commit local, sem push.
 
-Evidências e reprodução em TESTING.md: 188 testes passaram/1 opt-in ignorado, tipos/build; prova Firebase real separada passou, área sintética isolada e principal vazio. Não confundir mocks/emulador com essas provas. Área técnica e vínculo desativados, auditoria preservada. Próxima ação: validação do PDF e GPS/offline em aparelho pela equipe. Sem push autorizado nesta etapa.
-
-Limites científicos/layout/GPS físico/reabertura/cotas: STATUS e DECISIONS. Não apagar dados, arquivos locais de conflito ou treino.
+Próxima ação: testar precisão GPS em aparelho ao ar livre e conferir relatório com equipe. Margem de erro depende do hardware; base online não tem cache em massa. Perguntas científicas anteriores permanecem, fórmula v2 preservada. Não converter medidas ou datums antigos silenciosamente.

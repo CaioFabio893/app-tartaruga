@@ -12,6 +12,7 @@ export interface FonteRelatorio {
 }
 export interface RegistroRelatorio { ficha: FichaNinho; linha: LinhaResumo; origem: EntradaFicha }
 export interface Relatorio {
+  nomesResponsaveis?: Record<string,string>
   projetoNome: string
   consulta: EntradaConsulta
   geradoEm: string
@@ -81,23 +82,23 @@ export function montarRelatorio(entrada: {
       exclusoes.outrosFiltros++; continue
     }
     const data = dataCriterio(origem, e.consulta.criterio)
-    if (data.ambigua) { exclusoes.dataAmbigua++; continue }
-    if (data.data === null) { exclusoes.dataAusente++; continue }
-    if (paraDia(data.data) === null) throw new Error(`Data de campo inválida no ninho ${origem.ninho.codigoInterno}`)
-    if (!dentroDoPeriodo(data.data, e.consulta.inicio, e.consulta.fim)) { exclusoes.foraPeriodo++; continue }
+    if (data.ambigua) { exclusoes.dataAmbigua++; if (!e.consulta.todos) continue }
+    if (data.data === null && !data.ambigua && !e.consulta.todos) { exclusoes.dataAusente++; continue }
+    if (data.data !== null && paraDia(data.data) === null) throw new Error(`Data de campo inválida no ninho ${origem.ninho.codigoInterno}`)
+    if (!e.consulta.todos && !dentroDoPeriodo(data.data!, e.consulta.inicio, e.consulta.fim)) { exclusoes.foraPeriodo++; continue }
     const ficha = montarFichaNinho(origem)
     const linha = montarResumo({ criterio: e.consulta.criterio, fichas: [ficha] })[0]!
     linha.dataCriterio = data.data
     registros.push({ ficha, linha, origem })
   }
-  registros.sort((a, b) => a.linha.dataCriterio!.localeCompare(b.linha.dataCriterio!) || a.ficha.ninho.id.localeCompare(b.ficha.ninho.id))
+  registros.sort((a, b) => (a.linha.dataCriterio??'').localeCompare(b.linha.dataCriterio??'') || a.ficha.ninho.id.localeCompare(b.ficha.ninho.id))
   const parcial = e.fonte.demonstracao || !e.fonte.online || !e.fonte.sincronizacaoConfirmada || !e.fonte.conjuntoCompleto || exclusoes.dataAmbigua>0
   const avisos = ['Layout proposto: aguarda validação da coordenação.', '— significa campo sem valor; zero aparece somente quando observado.']
   if (e.fonte.demonstracao) avisos.push('DEMONSTRAÇÃO: dados fictícios, sem valor de relatório oficial.')
   if (!e.fonte.online) avisos.push('Exportação offline: parcial.')
   if (!e.fonte.sincronizacaoConfirmada) avisos.push('Sincronização com servidor não confirmada: parcial.')
   if (!e.fonte.conjuntoCompleto) avisos.push('Conjunto incompleto: exclusões não apuradas; parcial.')
-  if (exclusoes.dataAmbigua) avisos.push('Datas divergentes excluídas: requerem conferência, sem escolha automática.')
+  if (exclusoes.dataAmbigua) avisos.push('Datas divergentes requerem conferência, sem escolha automática; no modo por período são excluídas.')
   return { projetoNome: e.projetoNome, consulta: e.consulta, geradoEm: e.geradoEm, fonte: e.fonte,
     parcial, versaoFormula: VERSAO_FORMULA, registros, exclusoes: e.fonte.conjuntoCompleto ? exclusoes : null, avisos }
 }

@@ -1,20 +1,24 @@
+import {useEffect,useRef,useState} from 'react'
+import * as L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
 import type { RegistroRelatorio } from '../../report/relatorio'
 
 export default function MapaCoordenadas({registros,abrir}:{registros:RegistroRelatorio[];abrir:(id:string)=>void}) {
-  const pontos=registros.flatMap((r,i)=>{
-    const l=r.ficha.posicaoAtual.local
-    return l.latitude!==null&&l.longitude!==null&&Number.isFinite(l.latitude)&&Number.isFinite(l.longitude)?[{id:r.ficha.ninho.id,codigo:r.ficha.ninho.codigoInterno,lat:l.latitude,lon:l.longitude,numero:i+1}]:[]
-  })
-  if(!pontos.length)return <section className="cartao"><h2>Posições dos ninhos</h2><p>Sem coordenadas disponíveis. Consulte os ninhos na lista abaixo.</p></section>
-  const minLon=Math.min(...pontos.map(p=>p.lon)),maxLon=Math.max(...pontos.map(p=>p.lon))
-  const minLat=Math.min(...pontos.map(p=>p.lat)),maxLat=Math.max(...pontos.map(p=>p.lat))
-  const escala=Math.max((maxLon-minLon)/520,(maxLat-minLat)/230,.0000001)
-  const centroLon=(minLon+maxLon)/2,centroLat=(minLat+maxLat)/2
-  return <section className="cartao"><h2>Esquema das posições atuais</h2><p className="ajuda">Coordenadas em graus, sem mapa-base ou conversão entre datums. Os pontos podem se sobrepor. Use a lista para identificar cada ninho. Este esquema não serve para navegação.</p>
-    <svg className="mapa-svg" viewBox="0 0 600 320" aria-label="Esquema interativo de coordenadas, com lista equivalente abaixo">
-      <rect width="600" height="320" rx="12" fill="var(--mar-100)"/><path d="M30 160h540M300 30v260" stroke="var(--mar-700)" strokeDasharray="4 5" opacity=".25"/>
-      <text x="300" y="20" textAnchor="middle" fill="var(--mar-900)">N ↑</text>
-      {pontos.map(p=><g key={p.id} role="button" tabIndex={0} aria-label={`Abrir ${p.codigo}, latitude ${p.lat}, longitude ${p.lon}`} onClick={()=>abrir(p.id)} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();abrir(p.id)}}} transform={`translate(${300+(p.lon-centroLon)/escala},${165-(p.lat-centroLat)/escala})`}><circle r="17" fill="var(--mar-900)" stroke="white" strokeWidth="2"/><text textAnchor="middle" y="5" fill="white" fontSize="14">{p.numero}</text></g>)}
-    </svg><p className="ajuda">{pontos.length} posições disponíveis · {registros.length-pontos.length} ninhos sem par de coordenadas</p>
-  </section>
+  const elemento=useRef<HTMLDivElement>(null),[falha,setFalha]=useState(false)
+  const [online,setOnline]=useState(navigator.onLine)
+  useEffect(()=>{const atualizar=()=>setOnline(navigator.onLine);window.addEventListener('online',atualizar);window.addEventListener('offline',atualizar);return()=>{window.removeEventListener('online',atualizar);window.removeEventListener('offline',atualizar)}},[])
+  const pontos=registros.flatMap((r,i)=>{const l=r.ficha.posicaoAtual.local;return l.latitude!==null&&l.longitude!==null&&Number.isFinite(l.latitude)&&Number.isFinite(l.longitude)?[{id:r.ficha.ninho.id,codigo:r.ficha.ninho.codigoInterno,lat:l.latitude,lon:l.longitude,precisao:l.precisaoGpsM,datum:l.datum,numero:i+1}]:[]})
+  useEffect(()=>{
+    if(!elemento.current||!online||!pontos.length)return
+    setFalha(false)
+    const mapa=L.map(elemento.current)
+    const base=L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'}).addTo(mapa)
+    base.on('tileerror',()=>setFalha(true))
+    for(const p of pontos){const rotulo=document.createElement('span');rotulo.textContent=p.numero+' · '+p.codigo;L.circleMarker([p.lat,p.lon],{radius:10,color:'#ffffff',fillColor:'#0b3c49',fillOpacity:1}).addTo(mapa).bindTooltip(rotulo.outerHTML,{permanent:true,direction:'top'}).on('click',()=>abrir(p.id));if(p.precisao!==null)L.circle([p.lat,p.lon],{radius:p.precisao,color:'#0b3c49',weight:1,fillOpacity:.12}).addTo(mapa)}
+    if(pontos.length===1)mapa.setView([pontos[0]!.lat,pontos[0]!.lon],17)
+    else mapa.fitBounds(pontos.map(p=>[p.lat,p.lon] as [number,number]),{padding:[35,35],maxZoom:17})
+    L.control.scale({imperial:false}).addTo(mapa)
+    return()=>mapa.remove()
+  },[registros,abrir,online])
+  return <section className="cartao"><h2>Mapa dos ninhos</h2><p className="ajuda">Posição atual, derivada das transferências. Toque no ponto para abrir a ficha. O círculo indica a margem de erro registrada, quando disponível. Datums originais preservados, sem conversão; confirme a localização em campo.</p>{!pontos.length?<p>Sem coordenadas disponíveis. Consulte os ninhos na lista.</p>:online?<div ref={elemento} className="mapa-geografico" aria-label="Mapa geográfico dos ninhos"/>:<p role="status">Sem internet: mapa-base indisponível. As coordenadas continuam disponíveis na lista.</p>}{falha&&<p role="status">Não foi possível carregar partes do mapa-base. Use a lista de coordenadas e tente novamente com conexão.</p>}<p className="ajuda">{pontos.length} posições disponíveis · {registros.length-pontos.length} ninhos sem par de coordenadas. Base geográfica OpenStreetMap online, sem download offline.</p></section>
 }

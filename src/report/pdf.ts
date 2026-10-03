@@ -1,127 +1,34 @@
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from 'pdf-lib'
-import { camposExportacao, texto, totalObservado, type Relatorio } from './relatorio'
+import {totalObservado,type Relatorio} from './relatorio'
+import {dataLegivel,legivel,secoesFicha,valorCampo,type LinhaCampo} from './apresentacao'
 
-/** A4, fonte local padrão; sem imagem, serviço ou fonte remota. */
-export async function gerarPDF(r: Relatorio): Promise<Uint8Array> {
-  const doc = await PDFDocument.create()
-  doc.setTitle('Monitoramento de ninhos — relatório')
-  doc.setSubject(`Critério ${r.consulta.criterio}; ${r.parcial ? 'PARCIAL' : 'sincronização confirmada'}`)
-  doc.setCreationDate(new Date(r.geradoEm))
-  const normal = await doc.embedFont(StandardFonts.Helvetica)
-  const negrito = await doc.embedFont(StandardFonts.HelveticaBold)
-  let pagina: PDFPage; let y = 0; let contexto: string | null = null
-  const margem = 42, largura = 511
-  const substituidos = new Set<string>()
-  function seguro(s: string, fonte: PDFFont): string {
-    return [...s.normalize('NFC')].map(c => {
-      if (c === '\n' || c === '\r' || c === '\t') return ' '
-      try { fonte.encodeText(c); return c } catch { substituidos.add(c); return '?' }
-    }).join('')
-  }
-  function novaPagina() {
-    pagina = doc.addPage([595.28, 841.89]); y = 760
-    pagina.drawRectangle({ x: 0, y: 785, width: 595.28, height: 57, color: rgb(.043, .235, .286) })
-    pagina.drawText('MONITORAMENTO DE NINHOS', { x: margem, y: 813, size: 11, font: negrito, color: rgb(1, 1, 1) })
-    pagina.drawText(r.fonte.demonstracao ? 'DEMONSTRAÇÃO • PARCIAL • LAYOUT PROPOSTO' : r.parcial ? 'PARCIAL • LAYOUT PROPOSTO' : 'LAYOUT PROPOSTO',
-      { x: margem, y: 798, size: 8, font: normal, color: rgb(1, 1, 1) })
-    if(contexto) {
-      let cabecalho=seguro(contexto,normal)
-      if(normal.widthOfTextAtSize(cabecalho,8)>largura) {
-        while(normal.widthOfTextAtSize(cabecalho+'...',8)>largura)cabecalho=cabecalho.slice(0,-1)
-        cabecalho+='...'
-      }
-      pagina.drawText(cabecalho,{x:margem,y:768,size:8,font:normal,color:rgb(.07,.19,.23)});y=742
-    }
-  }
-  function linhas(s: string, fonte: PDFFont, tamanho: number): string[] {
-    const saida: string[] = []
-    for (const paragrafo of s.split(/\r?\n/)) {
-      let atual = ''
-      for (const c of seguro(paragrafo, fonte)) {
-        if (fonte.widthOfTextAtSize(atual + c, tamanho) > largura && atual) {
-          const espaco = atual.lastIndexOf(' ')
-          if (espaco > atual.length / 2) { saida.push(atual.slice(0, espaco)); atual = atual.slice(espaco + 1) + c }
-          else { saida.push(atual); atual = c }
-        } else atual += c
-      }
-      saida.push(atual)
-    }
-    return saida
-  }
-  function escrever(s: string, titulo = false) {
-    const tamanho = titulo ? 12 : 9, fonte = titulo ? negrito : normal, altura = titulo ? 20 : 14
-    if (titulo && y < 105) novaPagina()
-    for (const linha of linhas(s, fonte, tamanho)) {
-      if (y < 66) novaPagina()
-      pagina.drawText(linha, { x: margem, y, size: tamanho, font: fonte, color: rgb(.07, .19, .23) }); y -= altura
-    }
-    y -= titulo ? 4 : 3
-  }
-  novaPagina()
-  escrever(r.projetoNome, true)
-  escrever(`Período: ${texto(r.consulta.inicio)} a ${texto(r.consulta.fim)} | Critério: ${r.consulta.criterio}`)
-  escrever(`Gerado em: ${r.geradoEm} | Fórmula: ${r.versaoFormula} | Incluídos: ${r.registros.length}`)
-  escrever(`Filtros: ${Object.entries(r.consulta.filtros ?? {}).filter(([,v]) => v != null && v !== '').map(([k,v]) => `${k} = ${v}`).join('; ') || 'nenhum adicional'}`)
-  if (r.exclusoes) escrever(`Exclusões no conjunto conhecido: data ausente ${r.exclusoes.dataAusente}; data divergente ${r.exclusoes.dataAmbigua}; fora do período ${r.exclusoes.foraPeriodo}; outros filtros ${r.exclusoes.outrosFiltros}.`)
-  for (const aviso of r.avisos) escrever(aviso)
-  escrever('Totais observados (não representam valores ausentes)', true)
-  const rotulos = {vivos:'Vivos',natimortos:'Natimortos',ovosNaoEclodidos:'Ovos não eclodidos',ovosFurados:'Ovos furados',ovosTotais:'Total de ovos'}
-  for (const campo of ['vivos', 'natimortos', 'ovosNaoEclodidos', 'ovosFurados', 'ovosTotais'] as const) {
-    const t = totalObservado(r, campo)
-    escrever(`${rotulos[campo]}: ${texto(t.valor)} | ${t.observados} com valor, ${t.ausentes} sem valor${t.motivo?' | '+t.motivo:''}`)
-  }
-  escrever('Resumo dos registros', true)
-  escrever('Registro | Data | Praia / km | Espécie | Situação / histórico | Vivos | Total | % vivos')
-  if (!r.registros.length) escrever('Nenhum ninho atende aos filtros escolhidos.')
-  for (const { linha: l } of r.registros) escrever([l.numeroRegistro, l.dataCriterio,
-    `${texto(l.praiaCodigo)} / ${texto(l.localKm)}`, l.especieCodigo, `${texto(l.situacao)} / ${texto(l.historicoNinho)}`,
-    l.vivos, l.ovosTotais, l.percentualVivos].map(texto).join(' | '))
-  for (const registro of r.registros) {
-    contexto=`Ficha ${texto(registro.linha.numeroRegistro)} • ${registro.ficha.ninho.codigoInterno}`
-    novaPagina()
-    const f = registro.ficha, o = registro.origem.ocorrencia!
-    escrever(`Ficha ${texto(o.numeroRegistro)} • ${f.ninho.codigoInterno}`, true)
-    escrever(`Projeto: ${r.consulta.projetoId} | Temporada: ${texto(o.temporadaId)} | Responsável: ${texto(o.responsavelId)}`)
-    escrever('Campos da ficha de campo', true)
-    for (const [campo, valor] of Object.entries(camposExportacao(registro))) {
-      if ((campo === 'NAO_VIAVEIS' && o.especieCodigo !== 'DC') || (campo === 'N_NINHO' && f.ninho.situacao !== 'T') ||
-        (['PRAIA_DEST_P', 'LOCAL_KM_P'].includes(campo) && f.ninho.situacao !== 'P')) continue
-      escrever(`${campo}: ${texto(typeof valor === 'number' && ['LATITUDE','LONGITUDE'].includes(campo) ? valor.toFixed(5) : valor)}`)
-    }
-    escrever('Localização original e atual', true)
-    for (const [nome, local] of [['Original', o.localOrigem], ['Atual (derivada)', f.posicaoAtual.local]] as const) {
-      escrever(`${nome}: praia ${texto(local.praiaCodigo)}; km ${texto(local.localKm)}; ${texto(local.referencia)}`)
-      escrever(`Latitude ${texto(local.latitude?.toFixed(5))}; longitude ${texto(local.longitude?.toFixed(5))}; datum ${texto(local.datum)}; precisão GPS ${texto(local.precisaoGpsM)} m; fonte ${texto(local.fonteGps)}`)
-    }
-    escrever('Histórico de transferências', true)
-    if (!f.transferenciasOrdenadas.length) escrever('Nenhuma transferência registrada no conjunto fornecido.')
-    for (const t of f.transferenciasOrdenadas) {
-      escrever(`${t.dataTransferencia} | ${texto(t.instanteTransferencia)} | ${t.destino} | TEMP_TRANSF ${texto(t.tempoTransferencia)} | OVOS_TRANS ${texto(t.ovosTransferencia)}`)
-      escrever(`Destino: ${JSON.stringify(t.localDestino)}; cercado ${texto(t.cercadoId)}; N_NINHO ${texto(t.numeroNinhoCercado)}; responsável ${texto(t.responsavelId)}; OBS ${texto(t.observacoes)}`)
-    }
-    escrever('Visitas de acompanhamento (acréscimo do projeto)', true)
-    if (!registro.origem.visitas?.length) escrever('Nenhuma visita fornecida no conjunto do relatório.')
-    for (const v of registro.origem.visitas ?? []) escrever(`${v.dataVisita} | responsável ${texto(v.responsavelId)} | condição ${texto(v.condicao)} | eventos ${texto(v.eventos)} | OBS ${texto(v.observacoes)}`)
-    escrever('Registros de eclosão e abertura (origem preservada)', true)
-    if (!registro.origem.aberturas.length) escrever('Nenhum registro de eclosão/abertura no conjunto fornecido.')
-    for (const a of registro.origem.aberturas) {
-      escrever(`ID ${a.id}; DATA_ECLOS ${texto(a.dataEclosao)}; noite ${texto(a.noiteReferenciaEclosao)}; DATA_ABERT ${texto(a.dataAbertura)}; noite ${texto(a.noiteReferenciaAbertura)}`)
-      escrever(`VIVOS ${texto(a.vivos)}; NATIMORTOS ${texto(a.natimortos)}; OVOS_N_ECL ${texto(a.ovosNaoEclodidos)}; OVOS_FURAD ${texto(a.ovosFurados)}`)
-      escrever(`Responsável ${texto(a.responsavelId)}; primeiro filhote ${texto(a.horaPrimeiroFilhote)}; último ${texto(a.horaUltimoFilhote)}; OBS ${texto(a.observacoes)}`)
-    }
-    escrever('Avisos e motivos de campos vazios', true)
-    for (const motivo of registro.linha.motivos) escrever(motivo)
-    if (!registro.linha.motivos.length) escrever('Nenhum aviso adicional.')
-  }
-  if (substituidos.size) {
-    contexto=null
-    novaPagina(); escrever('Limitação de caracteres da fonte local', true)
-    escrever(`${substituidos.size} caracteres distintos não suportados foram substituídos por ?. O JSON conserva o texto original integral. Não usar este PDF como cópia integral desses textos.`)
-  }
-  const paginas = doc.getPages()
-  paginas.forEach((p, i) => {
-    p.drawLine({ start: { x: margem, y: 45 }, end: { x: 553, y: 45 }, thickness: .5, color: rgb(.7,.7,.7) })
-    p.drawText(`Página ${i + 1} de ${paginas.length} | ${r.consulta.inicio} a ${r.consulta.fim} | ${r.consulta.criterio} | Gerado ${r.geradoEm.slice(0,10)}`, {x: margem, y: 29, size: 8, font: normal})
-  })
-  return doc.save()
+/** PDF A4 com resumo de todo o snapshot e fichas completas; dados originais no JSON. */
+export async function gerarPDF(r:Relatorio):Promise<Uint8Array> {
+ const doc=await PDFDocument.create();doc.setTitle('Monitoramento de ninhos - relatório');doc.setSubject((r.consulta.todos?'Todos os ninhos':'Critério '+r.consulta.criterio)+'; '+(r.parcial?'PARCIAL':'sincronização confirmada'));doc.setCreationDate(new Date(r.geradoEm))
+ const normal=await doc.embedFont(StandardFonts.Helvetica),bold=await doc.embedFont(StandardFonts.HelveticaBold)
+ const largura=511,margem=42,cor=rgb(.07,.19,.23),suave=rgb(.94,.96,.96)
+ let pagina:PDFPage,y=0,contexto='',alternar=false
+ const substituidos=new Set<string>()
+ function seguro(s:string,font:PDFFont){return [...s.normalize('NFC')].map(c=>{if(['\r','\n','\t'].includes(c))return ' ';try{font.encodeText(c);return c}catch{substituidos.add(c);return '?'}}).join('')}
+ function quebrar(s:string,font:PDFFont,size:number,width:number){const saida:string[]=[];for(const p of s.split(/\r?\n/)){let linha='';for(const c of seguro(p,font)){if(font.widthOfTextAtSize(linha+c,size)>width&&linha){const i=linha.lastIndexOf(' ');if(i>0){saida.push(linha.slice(0,i));linha=linha.slice(i+1)+c}else{saida.push(linha);linha=c}}else linha+=c}saida.push(linha)}return saida}
+ function nova(){pagina=doc.addPage([595.28,841.89]);pagina.drawRectangle({x:0,y:786,width:595.28,height:56,color:rgb(.043,.235,.286)});pagina.drawText('MONITORAMENTO DE NINHOS',{x:margem,y:814,size:12,font:bold,color:rgb(1,1,1)});pagina.drawText(r.fonte.demonstracao?'DEMONSTRAÇÃO - PARCIAL':r.parcial?'RELATÓRIO PARCIAL':'DADOS CONFIRMADOS NO SERVIDOR',{x:margem,y:798,size:8,font:normal,color:rgb(1,1,1)});y=764;if(contexto){const ls=quebrar(contexto,bold,9,largura);for(const l of ls){pagina.drawText(l,{x:margem,y,size:9,font:bold,color:cor});y-=13}y-=6}}
+ function texto(s:string,size=9,font=normal){for(const l of quebrar(s,font,size,largura)){if(y<70)nova();pagina.drawText(l,{x:margem,y,size,font,color:cor});y-=14}y-=5}
+ function titulo(s:string){if(y<130)nova();y-=8;pagina.drawRectangle({x:margem,y:y-7,width:largura,height:24,color:suave});pagina.drawText(seguro(s,bold),{x:margem+7,y,size:11,font:bold,color:cor});y-=28}
+ function linha([rotulo,valor]:LinhaCampo){const esq=quebrar(rotulo,bold,8.5,192),dir=quebrar(valor,normal,9,287),n=Math.max(esq.length,dir.length);let i=0;while(i<n){if(y<88)nova();const quant=Math.min(n-i,Math.floor((y-66)/13));if(alternar)pagina.drawRectangle({x:margem,y:y-quant*13+3,width:largura,height:quant*13+5,color:suave});for(let j=0;j<quant;j++){if(esq[i+j])pagina.drawText(esq[i+j]!,{x:margem+6,y:y-j*13,size:8.5,font:bold,color:cor});if(dir[i+j])pagina.drawText(dir[i+j]!,{x:margem+211,y:y-j*13,size:9,font:normal,color:cor})}i+=quant;y-=quant*13+8}alternar=!alternar}
+ nova();texto(r.projetoNome,16,bold);texto(r.consulta.todos?'Abrangência: todos os ninhos do projeto, conforme filtros.':'Período: '+dataLegivel(r.consulta.inicio)+' a '+dataLegivel(r.consulta.fim)+' (datas inclusivas).');texto('Critério de data: '+({OCORR:'Ocorrência',ECLOS:'Eclosão',ABERT:'Abertura'}[r.consulta.criterio])+(r.consulta.todos?' (apenas referência; sem filtro por data)':''));texto('Gerado em: '+r.geradoEm+' | Fórmula: '+r.versaoFormula+' | Ninhos incluídos: '+r.registros.length)
+ const nomesFiltros:Record<string,string>={praiaCodigo:'Praia',especieCodigo:'Espécie',temporadaId:'Temporada',situacao:'Situação',historicoNinho:'Histórico',natureza:'Natureza'}
+ texto('Filtros adicionais: '+(Object.entries(r.consulta.filtros??{}).filter(([,v])=>v!=null&&v!=='').map(([k,v])=>(nomesFiltros[k]??k)+': '+legivel(v)).join('; ')||'nenhum'))
+ texto('Não informado: sem dado coletado. Não aplicável: condição não atendida. Indeterminado: resposta registrada. Zero: valor observado. Coordenadas com sete casas para consulta; casas decimais não aumentam a precisão do GPS.')
+ if(r.exclusoes){linha(['Ninhos excluídos por data ausente',legivel(r.exclusoes.dataAusente)]);linha(['Datas divergentes: conferir',legivel(r.exclusoes.dataAmbigua)]);if(r.exclusoes.foraPeriodo!==null)linha(['Excluídos fora do período',legivel(r.exclusoes.foraPeriodo)]);if(r.exclusoes.outrosFiltros!==null)linha(['Excluídos por outros filtros',legivel(r.exclusoes.outrosFiltros)])}
+ for(const a of r.avisos.filter(a=>!a.startsWith('—')))texto(a)
+ titulo('Totais dos valores observados')
+ const rotulos={vivos:'Filhotes vivos',natimortos:'Filhotes natimortos',ovosNaoEclodidos:'Ovos não eclodidos',ovosFurados:'Ovos furados',ovosTotais:'Total de ovos'}
+ for(const k of Object.keys(rotulos) as (keyof typeof rotulos)[]){const t=totalObservado(r,k);linha([rotulos[k],legivel(t.valor)+' ('+t.observados+' ninhos com valor; '+t.ausentes+' sem valor)'+(t.motivo?'. '+t.motivo:'')])}
+ titulo('Resumo de todos os ninhos incluídos')
+ if(!r.registros.length)texto('Nenhum ninho atende à abrangência e aos filtros selecionados.')
+ for(const [i,n] of r.registros.entries()){texto((i+1)+'. Registro '+legivel(n.linha.numeroRegistro)+' - '+n.ficha.ninho.codigoInterno,10,bold);texto('Data de referência: '+dataLegivel(n.linha.dataCriterio)+'; praia original: '+legivel(n.linha.praiaCodigo)+'; espécie: '+valorCampo('ESPECIE',n.linha.especieCodigo));texto('Conservação: '+valorCampo('SITUACAO',n.linha.situacao)+'; histórico: '+valorCampo('HIST_NINHO',n.linha.historicoNinho));texto('Vivos: '+legivel(n.linha.vivos)+'; total de ovos: '+legivel(n.linha.ovosTotais)+'; vivos (%): '+legivel(n.linha.percentualVivos))}
+ for(const [i,n] of r.registros.entries()){contexto='Ficha '+(i+1)+' de '+r.registros.length+' - Registro '+legivel(n.linha.numeroRegistro)+' - '+n.ficha.ninho.codigoInterno;nova();for(const s of secoesFicha(n,r.nomesResponsaveis)){titulo(s.titulo);for(const l of s.linhas)linha(l)}}
+ if(substituidos.size){contexto='Conferência de caracteres';nova();titulo('Caracteres não disponíveis na fonte local');texto(substituidos.size+' caracteres distintos foram substituídos por ?. O JSON mantém o texto integral. Confira a cópia JSON para esses trechos.')}
+ const pages=doc.getPages();for(const [i,p] of pages.entries()){p.drawLine({start:{x:margem,y:45},end:{x:553,y:45},thickness:.5,color:rgb(.7,.7,.7)});p.drawText('Página '+(i+1)+' de '+pages.length+' | '+(r.consulta.todos?'Todos os ninhos':dataLegivel(r.consulta.inicio)+' a '+dataLegivel(r.consulta.fim))+' | '+(r.parcial?'Parcial':'Confirmado'),{x:margem,y:29,size:8,font:normal,color:cor})}
+ return doc.save()
 }

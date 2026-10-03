@@ -51,8 +51,8 @@ somente porque a fêmea não foi observada.
 | MARCAS_COL (Marcas colocadas) | `marcas_colocadas` | string | até **2** por tartaruga | — | no flagrante; uma em cada nadadeira anterior; se já houver uma, colocar a segunda | MARCAS_COL | p. 2 |
 | MARCAS_RET (Marcas retiradas) | `marcas_retiradas` | string | número + código de letras (texto) | — | critério considera **localização e estado de conservação**; o código também vai para MARCAS_ENC; devolver sempre as marcas ao executor de base | MARCAS_RET | p. 2 |
 | ESPECIE | `especie_codigo` | enum | — | `CC` \| `EI` \| `LO` \| `CM` \| `DC` \| `NI` | no flagrante, pela observação dos filhotes, **ou na abertura** (cascas/embriões); na impossibilidade → `NI`; suspeita de híbrido → `HIBRIDO` em OBS | ESPECIE | p. 2 |
-| COMP_CASCO (Comprimento do casco) | `comprimento_casco` | number | **unidade não consta no manual** | — | conforme protocolo de marcação e biometria (anexo não anexado) | COMP_CASCO | p. 2 |
-| LARG_CASCO (Largura do casco) | `largura_casco` | number | **unidade não consta no manual** | — | idem | LARG_CASCO | p. 2 |
+| COMP_CASCO (Comprimento do casco) | `comprimento_casco` | number | cm (confirmado pelo usuário, D-022; manual não informa unidade) | — | conforme protocolo de marcação e biometria (anexo não anexado) | COMP_CASCO | p. 2 |
+| LARG_CASCO (Largura do casco) | `largura_casco` | number | cm (confirmado pelo usuário, D-022; manual não informa unidade) | — | idem | LARG_CASCO | p. 2 |
 | TUMORES | `tumores` | enum | — | `S` \| `N` \| `I` | **sempre** preenchido no flagrante | TUMORES | p. 3 |
 | COLETA_MATERIAL_BIOLOGICO | `coleta_material_biologico` | string[] | — | `DNA`, `tumor`, `epibiontes`, `etc.` | assinalar quando houve coleta para análise | COLETA_MATERIAL_BIOLOGICO | p. 3 |
 | EVIDENCIA_INT_PESCA | `evidencia_interacao_pesca` | boolean | — | — | quando o animal apresentar evidência de interação com pesca (anzois, pedagos de linha, rede etc.) | EVIDENCIA_INT_PESCA | p. 3 |
@@ -199,6 +199,6 @@ quando a coordenação definir o nome oficial de interchange.
 - `FOTOGRAFIA` e carga de imagens no SITAMAR (p. 5) — sem fotos, câmera, upload ou Storage no app.
 - Anexos **não anexados** a este manual, citados e necessários: `PROTOCOLO PARA MARCAÇÃO E BIOMETRIA DE
   TARTARUGAS MARINHAS` (p. 2) e `PRANCHAS AUXILIARES PARA IDENTIFICAÇÃO DAS ESPÉCIES DE TARTARUGAS
-  MARINHAS` (p. 2). Sem eles, as unidades de biometria não podem ser fechadas.
+  MARINHAS` (p. 2). Unidade cm confirmada pelo usuário em D-022; os anexos ainda são necessários para o protocolo de medição.
 - Integração com o SITAMAR: os códigos de praia e de tipo de evidência são mantidos no SITAMAR
   (p. 1, p. 2). Este app não é uma via de cadastro desses códigos.

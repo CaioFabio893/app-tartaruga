@@ -114,6 +114,8 @@ export function tokensDeFiltro(filtros: FiltrosRelatorio): string[] {
 
 /** Validacao de filtros e periodo. Devolve o motivo, nunca um filtro "corrigido" em silencio. */
 export interface EntradaConsulta {
+  /** Inclui todo o projeto (filtros opcionais), sem excluir datas ausentes. */
+  todos?: boolean
   projetoId: string
   criterio: Criterio
   inicio: DataCampo | null
@@ -149,6 +151,7 @@ export const NOTA_AUSENTES =
 export function descreverConsultaRelatorio(entrada: EntradaConsulta): ResultadoConsulta {
   const erros = validarEntrada(entrada)
   if (erros.length > 0) return { ok: false, erros }
+  if (entrada.todos) return {ok:true,consulta:{colecao:`projetos/${entrada.projetoId}/consultas`,restricoes:[{tipo:'igual',campo:'projeto_id',valor:entrada.projetoId},...restricoesDosFiltros(entrada.filtros??{})],ordem:[{tipo:'ordenar',campo:'__name__',direcao:'asc'}],limite:entrada.limite??LIMITE_PAGINA,corteSuperior:'',contagem:false,nota:'Todos os ninhos do projeto, sem restrição de data.'}}
   // `validarEntrada` ja recusou datas invalidas; o tipo ainda nao sabe disso.
   if (!dataISO(entrada.fim)) return { ok: false, erros: ['data final do periodo invalida'] }
   const { projetoId, criterio, inicio, fim } = entrada
@@ -217,11 +220,11 @@ function validarEntrada(entrada: EntradaConsulta): string[] {  const erros: stri
   if (!(CRITERIOS as readonly string[]).includes(entrada.criterio)) {
     erros.push(`criterio invalido: use ${CRITERIOS.join(', ')}`)
   }
-  if (paraDia(entrada.inicio) === null) erros.push('data inicial do periodo invalida')
-  if (paraDia(entrada.fim) === null) erros.push('data final do periodo invalida')
+  if (!entrada.todos && paraDia(entrada.inicio) === null) erros.push('data inicial do periodo invalida')
+  if (!entrada.todos && paraDia(entrada.fim) === null) erros.push('data final do periodo invalida')
   if (erros.length > 0) return erros
 
-  if (!dentroDoPeriodo(entrada.inicio, entrada.inicio, entrada.fim)) {
+  if (!entrada.todos && !dentroDoPeriodo(entrada.inicio, entrada.inicio, entrada.fim)) {
     erros.push('periodo invertido ou vazio: inicio precisa ser menor ou igual a fim')
   }
   if (entrada.limite !== undefined && (!Number.isSafeInteger(entrada.limite) || entrada.limite < 1 || entrada.limite > LIMITE_MAXIMO)) {

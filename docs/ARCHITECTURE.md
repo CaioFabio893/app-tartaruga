@@ -105,3 +105,5 @@ Planejado: repositório/fila/sincronização oficiais com `operationId`/`baseVer
 - Procedimento administrativo de criação do primeiro usuário `coordenacao` (`SECURITY.md`).
 - As 8 dúvidas de domínio em `DOMAIN_RULES.md` §8, que são da coordenação científica, não de arquitetura.
 - Escopos exatos das reservas de número `N_REGISTRO`/`N_NINHO` (`reserva.ts`, pendente da coordenação).
+
+P04: Leaflet local (dependência existente) + base online OpenStreetMap, com atribuição e sem cache/prefetch de tiles. Somente a janela visível solicita tiles; indisponibilidade/offline explicados, lista preservada. Sem serviços Google pagos. Contrato de apresentação PDF em src/report/apresentacao.ts, separado dos campos científicos/exportação JSON/CSV.

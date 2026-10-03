@@ -25,7 +25,9 @@ Implementação em src/report/relatorio.ts valida e congela snapshot usado pelas
 
 ## 2. Política para datas vazias
 
-Registro **sem a data do critério** não entra no relatório. A tela mostra:
+Modo **Todos os ninhos** (padrão P04) não aplica datas e inclui ninhos sem datas. Datas divergentes permanecem visíveis sem escolher uma data e tornam a exportação parcial. Modo **Todos os ninhos do período** preserva as regras seguintes.
+
+Registro **sem a data do critério** não entra no relatório por período. A tela mostra:
 
 - `incluídos: N`
 - `excluídos por data ausente: M`, somente se apurado numa consulta adicional com escopo explícito
@@ -46,7 +48,7 @@ com `datas.<criterio> = null`. Sem esse escopo explícito, não exibir o número
 ### 3.2 Ficha detalhada (uma por ninho, páginas seguintes)
 
 Identificação (`N_REGISTRO`, `N_NINHO` quando `situacao = 'T'`, projeto, temporada, responsável) ·
-Localização original (praia, km, bairro, referência, latitude/longitude com 5 casas, datum, precisão) ·
+Localização original (praia, km, bairro, referência, latitude/longitude com 7 casas no PDF/consulta; exportação tabular do manual preservada, datum, precisão) ·
 Localização atual e histórico de transferências · Animal (marcas encontradas/colocadas/retiradas, espécie,
 biometria, tumores, coleta, interação com pesca) · Manejo (`TEMP_TRANSF`, ovos da transferência) ·
 Eclosão e abertura (datas, vivos, natimortos, não eclodidos, furados, não viáveis, derivados) ·
@@ -98,12 +100,12 @@ valor, para o total não parecer completo quando não é. Se nenhum valor foi ob
 3. Intervalo grande (mais de 500 registros): paginação e número de páginas correto.
 4. Nenhum registro no período: página de aviso, sem página em branco.
 5. Registro sem a data do critério: excluído e contabilizado.
-6. Valores vazios impressos como `—`, nunca `0`.
-7. Acentos e `—` renderizando corretamente no PDF.
+6. Valores ausentes no PDF como "Não informado" ou motivo específico; nunca zero presumido.
+7. Acentos renderizando corretamente no PDF; rótulos completos e códigos explicados.
 8. Observação longa quebrando página sem corte.
 9. Offline: PDF gerado marcado como parcial.
 10. Filtro por praia, espécie e temporada combinada com o período.
 
 ## 8. Entrega e evidência
 
-E02 concluída para treino; todos os relatórios atuais são parciais/demonstrativos. Login não confirma sincronização de fichas. Definitivo exige fonte oficial completa, online e sincronização confirmada (E10 pendente). Amostra output/pdf/relatorio-demonstracao.pdf, testes/revisão visual em TESTING.md. Não incluir FOTOGRAFIA. Cinco casos fictícios; nenhum vínculo com projeto real.
+P03 fornece fonte real confirmada conforme STATUS/TESTING. P04 organiza resumo de todos os ninhos incluídos e tabelas por ficha, com todos os campos do manual (sem FOTOGRAFIA), motivos e códigos legíveis; sem serialização JSON ou UID como nome. Autoria técnica preservada no JSON; nome usa displayName da sessão quando conhecido, sem inventar identidade. Amostra P04 fictícia em output/pdf/relatorio-p04-demonstracao.pdf.
