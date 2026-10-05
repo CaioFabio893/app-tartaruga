@@ -1,6 +1,6 @@
 # Status — 03/10/2026
 
-P14: atualização das capturas para LinkedIn/GitHub, dono Codex, escopo documental e imagens; execução em andamento. [Tarefa](tasks/P14-imagens-portfolio.md).
+P14 concluída (05/10/2026), dono Codex: quatro capturas proporcionais publicadas no README/GitHub e postagem LinkedIn com texto aprovado e quatro imagens; dados fictícios. Commit de imagens 8f6881f enviado/conferido no remoto. [Tarefa](tasks/P14-imagens-portfolio.md).
 
 P10 concluída, dono OpenCode: repositório apresentável para recrutadores. README reestruturado (visão geral, telas, destaques técnicos, diagramas, testes, segurança), licença MIT, CI do GitHub Actions e screenshots fictícias do protótipo; nenhum código/regra/dado alterado. Validação sem emulador: 191 passaram/23 ignorados; tipos/build OK. [Entrega](tasks/P10-portfolio-readme.md).
 
