@@ -1,5 +1,8 @@
 # Decisões
 
+## D-030 — capturas de portfólio (05/10/2026)
+Usuário pediu substituir a apresentação das telas no GitHub por novas capturas sem distorção. README passa a apontar para JPEG em viewport; PNG anteriores preservados como histórico, evitando apagar trabalho existente. Dados somente fictícios em modo treino.
+
 ## D-011 - Revisão Codex e fonte textual
 - **Data**: 02/10/2026.
 - **Decisão**: transcrição do usuário em docs/references/MANUAL-TRANSCRITO.md; buscar campos antes

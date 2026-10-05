@@ -18,16 +18,16 @@ Authentication** e regras de segurança testáveis.
 
 ## Telas do aplicativo
 
-Telas do aplicativo real em execução no **modo de treino** — dados fictícios, nada é salvo e nada é
-sincronizado. O fluxo oficial usa login e Cloud Firestore.
+Capturas enquadradas do aplicativo real, com proporção original, em **modo de treino** — dados fictícios
+armazenados apenas no aparelho, sem sincronização com o projeto oficial. O fluxo oficial usa login e Cloud Firestore.
 
-![Relatórios: filtros, prévia com métricas e tabela do mesmo conjunto exportado](docs/images/app-relatorios.png)
+![Relatórios: prévia com métricas, tabela e exportações](docs/images/app-relatorios.jpg)
 
-![Ninhos: lista por ano com estado de acompanhamento](docs/images/app-ninhos.png)
+![Ninhos: lista por ano com estado de acompanhamento](docs/images/app-ninhos.jpg)
 
-![Mapa: posições derivadas do histórico sobre OpenStreetMap, com lista equivalente](docs/images/app-mapa.png)
+![Mapa: posições de demonstração sobre OpenStreetMap](docs/images/app-mapa.jpg)
 
-![Ficha do ninho: organização anual, localização original/atual e ficha de campo completa](docs/images/app-ficha.png)
+![Ficha do ninho: detalhe da localização e dos campos de demonstração](docs/images/app-ficha.jpg)
 
 ## Sobre o projeto
 

@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-10-05 — P14 capturas para portfólio
+- Quatro capturas em proporção original e enquadramentos menores, com dados fictícios; README usa JPEG. PNG antigos preservados. Nenhum código/regra/dado oficial alterado. [P14](tasks/P14-imagens-portfolio.md).
+
 ## 2026-10-03 — P10 apresentação para recrutadores
 - README reestruturado com visão geral, telas, destaques técnicos, diagramas Mermaid, stack, execução, testes, segurança e custo; conteúdo interno preservado por resumo + link. Nenhum código/regra/dado alterado.
 - Licença MIT e CI do GitHub Actions (tipos, build e testes). Screenshots do app real em modo de treino (dados fictícios) em `docs/images/`; descrição, site e tópicos definidos no GitHub.
