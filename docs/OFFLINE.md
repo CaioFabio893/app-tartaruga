@@ -12,7 +12,7 @@ Cache da interface e **persistência de dados** são coisas distintas (`AGENTS.m
 
 Treino em `src/data/treino.ts`: IndexedDB nativo, operações/revisões auditadas em transação única; uma aba com revisão antiga não sobrescreve outra. Falha mantém formulário. Estrutura inválida/incompatível gera erro e não reset. Exportação integral JSON disponível; não há importação/restauração pela interface ainda.
 
-SW de produção cacheia somente assets estáticos próprios, inclusive módulos PDF. Navegação tem fallback offline após cache instalado; requisições Firebase/tokens e outras origens não são cacheados. Atualização fica aguardando, sem skipWaiting automático; fechar abas quando não houver rascunho. Instalação física ainda não testada.
+SW de produção cacheia somente assets estáticos próprios, inclusive módulos PDF. Navegação tem fallback offline após cache instalado; requisições Firebase/tokens e outras origens não são cacheados. Atualização fica aguardando, sem skipWaiting automático (não descarta formulário); o aviso oferece botão “Atualizar agora” que ativa a nova versão e recarrega. Instalação física ainda não testada.
 
 Rascunho de cadastro P15: localStorage por usuário/projeto/ocorrência e versão-base. Retoma valores apenas na mesma versão; conteúdo corrompido/incompatível é ignorado sem apagar a chave. Não é registro cadastrado nem pendência sincronizada. Limpa após salvar com sucesso. É local ao navegador, não acompanha outro aparelho, não integra a cópia JSON de registros e permanece se a sessão terminar; evite aparelho compartilhado. Falha de armazenamento é indicada na tela.
 

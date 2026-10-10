@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { criarTreino, carregarTreino, gravarTreino, fichasDoTreino, type EstadoTreino } from './app/treino'
 import { montarFichaNinho, montarResumo } from './domain/agregado'
 import { camposExportacao, gerarCSV, gerarJSON, montarRelatorio, texto, totalObservado, type Relatorio } from './report/relatorio'
@@ -48,7 +48,8 @@ function App({inicial,aoSair}:{inicial?:EstadoTreino;aoSair?:()=>void}={}) {
   const [estado,setEstado]=useState(()=>inicial??criarTreino()),[localPronto,setLocalPronto]=useState(!!inicial),[avisoLocal,setAvisoLocal]=useState('')
   const [formulario,setFormulario]=useState<'ocorrencia'|'transferencia'|'abertura'|'visita'|'animal'|'cadastro'|'excluir'|null>(null)
   const [transferenciaEditar,setTransferenciaEditar]=useState<string|undefined>()
-  const [avisoCache,setAvisoCache]=useState('')
+  const [avisoCache,setAvisoCache]=useState(''),[atualizacaoPronta,setAtualizacaoPronta]=useState(false)
+  const atualizarCache=useRef<(()=>void)|null>(null)
   const [gestao,setGestao]=useState<EstadoGestao>({ninhos:{},config:null,confirmada:false,revisao:0})
   const [ano,setAno]=useState(String(new Date().getFullYear())),[anoRelatorio,setAnoRelatorio]=useState('todos'),[organizando,setOrganizando]=useState(false)
   const pendente=nuvem && ['pendente','conflito','erro'].includes(estado.statusNuvem??'')
@@ -72,7 +73,7 @@ function App({inicial,aoSair}:{inicial?:EstadoTreino;aoSair?:()=>void}={}) {
     if(canal)canal.onmessage=()=>{if(ativo){setRelatorio(null);setAvisoLocal('Outra aba alterou os dados. Confira a atualização antes de salvar; seu formulário está preservado.')}}
     return ()=>{ativo=false;canal?.close()}
   },[])
-  useEffect(()=>{let ativo=true;let parar:(()=>void)|undefined;void registrarCacheInterface(m=>{if(ativo)setAvisoCache(m)}).then(p=>{if(ativo)parar=p;else p()}).catch(()=>{if(ativo)setAvisoCache('Cache da interface não confirmado. Use conexão para reabrir o aplicativo. Dados locais não foram apagados.')});return()=>{ativo=false;parar?.()}},[])
+  useEffect(()=>{let ativo=true;let parar:(()=>void)|undefined;void registrarCacheInterface((m,atualizacao)=>{if(ativo){setAvisoCache(m);setAtualizacaoPronta(atualizacao)}}).then(c=>{if(ativo){parar=c.parar;atualizarCache.current=c.atualizar}else c.parar()}).catch(()=>{if(ativo)setAvisoCache('Cache da interface não confirmado. Use conexão para reabrir o aplicativo. Dados locais não foram apagados.')});return()=>{ativo=false;parar?.()}},[])
   async function salvarLocal(novo:EstadoTreino) {
     const confirmado=nuvem?await gravarProjeto(estado,novo):novo
     if(!nuvem)await gravarTreino(novo,estado.revisao)
@@ -124,7 +125,7 @@ function App({inicial,aoSair}:{inicial?:EstadoTreino;aoSair?:()=>void}={}) {
       <div className="status-local">{aoSair&&<button className="btn" disabled={!!formulario||organizando} onClick={aoSair}>Sair</button>}<span>{localPronto?(nuvem?(estado.statusNuvem==='confirmada'?'Dados confirmados no servidor':estado.statusNuvem==='cache'?'Cópia local · não conferida no servidor':'Alteração pendente · não sincronizada'):`${estado.operacoes.length} alterações locais · não sincronizadas`):'Preparando armazenamento de treino…'}</span><button className="btn" disabled={!!formulario||organizando} onClick={()=>void recarregarLocal()}>Conferir dados</button><button className="btn" onClick={()=>void (async()=>{try{baixar(JSON.stringify(nuvem?{...await copiaCompletaProjeto(estado.contexto!),organizacao:gestao}: {organizacao:gestao,modo:nuvem?'PROJETO':'TREINO_LOCAL',parcial:!nuvem||!online||estado.statusNuvem!=='confirmada',estado},null,2),'application/json',nuvem?'backup-projeto.json':'backup-treino-local.json')}catch(e){setErro(e instanceof Error?e.message:'Falha ao exportar cópia.')}})()}>Exportar cópia JSON</button></div>
       {pendente&&<div className="mensagem aviso"><p>{estado.mensagemNuvem} Exporte uma cópia JSON antes de resolver o conflito.</p><div className="acoes"><button className="btn" disabled={!online||ocupado||!!formulario} onClick={()=>void sincronizar()}>Tentar sincronizar</button><button className="btn" disabled={!online||ocupado||!!formulario} onClick={()=>void adotarRemoto()}>Manter remoto e arquivar rascunho</button></div></div>}
       {avisoLocal&&<p className="mensagem" role="status">{avisoLocal}</p>}
-      {avisoCache&&<p className="mensagem" role="status">{avisoCache}</p>}
+      {avisoCache&&<p className="mensagem" role="status">{avisoCache}{atualizacaoPronta&&<button className="btn" onClick={()=>atualizarCache.current?.()}>Atualizar agora</button>}</p>}
       {erro && <div className="mensagem erro" role="alert">{erro}</div>}
       {indicadorArmazenamento(gestao.config).pertoLimite&&<p className="mensagem aviso" role="status">Uso da nuvem acima de 80% na medição de {gestao.config?.medido_em}. Confira “Cadastros” → Armazenamento. Esta medição é manual; consulte o console para o uso atual.</p>}
       {!formulario&&!ficha&&(tela==='Ninhos'||tela==='Mapa')&&<section className="cartao"><label>Ano dos ninhos<select value={ano} onChange={e=>setAno(e.target.value)}>{anos.map(a=><option key={a} value={a}>{a}</option>)}<option value="sem-ano">Sem ano definido ({semAno})</option></select></label><p>{visiveis.length} ninhos nesta seleção. O mapa exibe somente este ano. {semAno>0&&'Registros antigos aguardam organização: escolha “Sem ano definido”, abra a ficha e informe ano e número.'}</p>{!gestao.confirmada&&nuvem&&<p className="mensagem aviso">Organização anual em cópia local; não confirmada no servidor.</p>}{alertas.length>0&&<div className="mensagem aviso"><strong>Acompanhamento · data do aparelho {hoje}</strong>{alertas.map(({r,a})=><p key={r.ficha.ninho.id}><button className="btn" onClick={()=>setSelecionado(r.ficha.ninho.id)}>{rotuloNinho(r,gestao.ninhos[r.ficha.ninho.id])}</button> {a.texto}</p>)}<small>Previsões informadas pela equipe. Alertas aparecem ao abrir o aplicativo.</small></div>}</section>}

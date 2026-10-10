@@ -16,6 +16,7 @@ function cacheInterface():Plugin {
 const ARQUIVOS=${JSON.stringify(arquivos)};
 self.addEventListener('install',evento=>evento.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ARQUIVOS))));
 self.addEventListener('activate',evento=>evento.waitUntil(caches.keys().then(chaves=>Promise.all(chaves.filter(c=>c.startsWith('ninhos-interface-')&&c!==CACHE).map(c=>caches.delete(c)))).then(()=>self.clients.claim())));
+self.addEventListener('message',evento=>{if(evento.data==='SKIP_WAITING')self.skipWaiting()});
 self.addEventListener('fetch',evento=>{
  const r=evento.request,url=new URL(r.url);
  if(r.method!=='GET'||url.origin!==self.location.origin)return;
