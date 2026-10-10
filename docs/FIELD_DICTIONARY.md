@@ -71,7 +71,7 @@ somente porque a fêmea não foi observada.
 | N_NINHO (Número do ninho) | `numero_ninho_cercado` | string (texto) | número do ninho **dentro do cercado** | — | **apenas** quando houve transferência para o cercado; entrada e saída do ninho no cercado | N_NINHO | p. 4 |
 | PRAIA_DEST_P (Praia de destino) | `praia_destino_codigo` | string | código pré-estabelecido | mesmos códigos de PRAIA | **apenas** quando SITUACAO = P; pode ser outra praia ou a mesma | PRAIA_DEST_P | p. 4 |
 | LOCAL_KM_P | `local_km_destino` | string | trecho | — | **apenas** quando SITUACAO = P | LOCAL_KM_P | p. 4 |
-| (projeto) | `local_origem_*, `posicao_atual_*` | — | — | — | localização original é **imutável**; a atual é derivada do histórico de transferências (ver `ARCHITECTURE.md`) | — | projeto |
+| (projeto) | `local_origem_*, `posicao_atual_*` | — | — | — | localização original é **imutável para manejo**; correção de digitação auditada segue D-031; a atual é derivada do histórico de transferências (ver `ARCHITECTURE.md`) | — | projeto |
 | (projeto) | `transferencias[]` | coleção | — | — | cada transferência é registro próprio, com destino, data/hora, categoria de tempo, ovos e nº do cercado quando aplicável | — | projeto |
 
 ## 4. Eclosão, abertura e histórico (p. 4–6)

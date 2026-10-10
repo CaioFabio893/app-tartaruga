@@ -1,3 +1,4 @@
+import { ordenarTransferencias } from '../domain/agregado'
 import type { EntradaFicha } from '../domain/agregado'
 import type { Abertura, Ninho, Ocorrencia, Transferencia, Visita } from '../domain/tipos'
 import { ESPECIES, HISTORICOS_NINHO, SITUACOES, TEMPOS_TRANSFERENCIA } from '../domain/tipos'
@@ -65,7 +66,8 @@ export function registrarOcorrencia(e: EstadoTreino, o: Omit<Ocorrencia,'id'|'ni
   return resultado
 }
 
-export function registrarTransferencia(e:EstadoTreino,t:Omit<Transferencia,'id'|'criadoPor'|'criadoEm'|'atualizadoPor'|'atualizadoEm'|'versao'>,m:AutoriaTreino):EstadoTreino {
+export function registrarTransferencia(e:EstadoTreino,t:Omit<Transferencia,'id'|'criadoPor'|'criadoEm'|'atualizadoPor'|'atualizadoEm'|'versao'>,m:AutoriaTreino,idExistente:string|null=null,motivo=''):EstadoTreino {
+  if(idExistente&&!motivo.trim())throw new Error('Motivo da correção: explique o erro na transferência.')
   if(!['PRAIA','CERCADO'].includes(t.destino)) throw new Error('Destino inválido.')
   validarData(t.dataTransferencia,'Data de transferência'); contagem(t.ovosTransferencia,'OVOS_TRANS')
   if(t.tempoTransferencia!==null && !(TEMPOS_TRANSFERENCIA as readonly string[]).includes(t.tempoTransferencia)) throw new Error('TEMP_TRANSF inválido.')
@@ -74,11 +76,14 @@ export function registrarTransferencia(e:EstadoTreino,t:Omit<Transferencia,'id'|
   if(t.destino==='PRAIA' && !t.localDestino.localKm?.trim()) throw new Error('Informe o trecho de destino no treino.')
   const n=structuredClone(e); const ninho=n.ninhos.find(x=>x.id===t.ninhoId)
   if(!ninho || t.projetoId!==ninho.projetoId || !projetoPermitido(e,t.projetoId)) throw new Error('Vínculo de transferência inválido.')
-  const anterior=structuredClone(ninho); const registro:Transferencia={...structuredClone(t),...trilha(m),id:m.novoId()}
-  if(n.transferencias.some(x=>x.id===registro.id)) throw new Error('Transferência duplicada.')
-  n.transferencias.push(registro)
-  ninho.situacao=t.destino==='CERCADO'?'T':'P';ninho.atualizadoEm=m.instante;ninho.atualizadoPor=m.usuario;ninho.versao++
-  return novo(n,m,'transferencia',anterior,{transferencia:registro,ninho})
+  const existente=idExistente?n.transferencias.find(x=>x.id===idExistente&&x.ninhoId===t.ninhoId):undefined
+  if(idExistente&&!existente)throw new Error('Transferência não encontrada neste ninho.')
+  const anterior={ninho:structuredClone(ninho),transferencia:existente?structuredClone(existente):null}; const registro:Transferencia={...structuredClone(t),...trilha(m),id:existente?.id??m.novoId(),criadoPor:existente?.criadoPor??m.usuario,criadoEm:existente?.criadoEm??m.instante,versao:(existente?.versao??0)+1}
+  if(!existente&&n.transferencias.some(x=>x.id===registro.id)) throw new Error('Transferência duplicada.')
+  if(existente)n.transferencias[n.transferencias.indexOf(existente)]=registro;else n.transferencias.push(registro)
+  const atual=ordenarTransferencias(n.transferencias.filter(x=>x.ninhoId===ninho.id)).at(-1)!
+  ninho.situacao=atual.destino==='CERCADO'?'T':'P';ninho.atualizadoEm=m.instante;ninho.atualizadoPor=m.usuario;ninho.versao++
+  return novo(n,m,'transferencia',anterior,{transferencia:registro,ninho,...(existente?{motivo:motivo.trim()}:{} )})
 }
 
 export function registrarAbertura(e:EstadoTreino,a:Omit<Abertura,'id'|'criadoPor'|'criadoEm'|'atualizadoPor'|'atualizadoEm'|'versao'>,
@@ -136,9 +141,42 @@ export function corrigirAnimal(e:EstadoTreino,ocorrenciaId:string,campos:Correca
   if(o.numeroRegistro!==null&&campos.numeroRegistro!==o.numeroRegistro)throw new Error('Número já atribuído não será renumerado.')
   if(campos.especieCodigo!=='DC'&&n.aberturas.some(a=>a.ninhoId===o.ninhoId&&a.naoViaveis!==null))throw new Error('Confira NAO_VIAVEIS na abertura antes de corrigir espécie diferente de DC; nada foi apagado.')
   const ninho=n.ninhos.find(x=>x.id===o.ninhoId),antes={ocorrencia:structuredClone(o),ninho:ninho?structuredClone(ninho):null}
-  const corrigida={...o,...structuredClone(campos),versao:o.versao+1,atualizadoPor:m.usuario,atualizadoEm:m.instante}
+  const corrigida={...o,...structuredClone(campos),id:o.id,ninhoId:o.ninhoId,projetoId:o.projetoId,responsavelId:o.responsavelId,criadoPor:o.criadoPor,criadoEm:o.criadoEm,versao:o.versao+1,atualizadoPor:m.usuario,atualizadoEm:m.instante}
   validarOcorrenciaEntrada(corrigida,ninho?.situacao??null)
   n.ocorrencias[n.ocorrencias.indexOf(o)]=corrigida
   if(ninho){ninho.versao++;ninho.atualizadoPor=m.usuario;ninho.atualizadoEm=m.instante}
   return novo(n,m,'animal',antes,{ocorrencia:corrigida,ninho:ninho??null})
+}
+
+
+/** Correção explícita D-031: pré-imagem preservada; nunca representa manejo. */
+export type CorrecaoCadastro = Omit<Ocorrencia,'id'|'ninhoId'|'projetoId'|'responsavelId'|'criadoPor'|'criadoEm'|'atualizadoPor'|'atualizadoEm'|'versao'>
+export function corrigirCadastro(e:EstadoTreino,id:string,campos:CorrecaoCadastro,motivo:string,m:AutoriaTreino):EstadoTreino {
+ if(e.contexto?.papel==='consulta')throw new Error('Seu acesso é somente consulta.')
+ if(!motivo.trim())throw new Error('Motivo da correção: explique o erro que está corrigindo.')
+ const n=structuredClone(e),o=n.ocorrencias.find(x=>x.id===id)
+ if(!o||!projetoPermitido(e,o.projetoId))throw new Error('Ocorrência fora do projeto.')
+ const ninho=n.ninhos.find(x=>x.id===o.ninhoId)
+ if((o.ninhoId!==null)!==(campos.tipoOcorrencia==='CD'))throw new Error('TIPO_OCORR: um ninho exige CD. Para corrigir uma ocorrência cadastrada sem desova, solicite à coordenação a exclusão do cadastro incorreto e registre a ocorrência correta; nenhum histórico foi apagado.')
+ if(campos.especieCodigo!=='DC'&&n.aberturas.some(a=>a.ninhoId===o.ninhoId&&a.naoViaveis!==null))throw new Error('ESPECIE: corrija primeiro NAO_VIAVEIS na abertura; esse campo só se aplica a DC.')
+ const l=campos.localOrigem
+ if([l.latitude,l.longitude].some(v=>v!==null&&!Number.isFinite(v))||l.latitude!==null&&Math.abs(l.latitude)>90||l.longitude!==null&&Math.abs(l.longitude)>180||(l.latitude===null)!==(l.longitude===null)||l.latitude!==null&&!l.datum)throw new Error('LATITUDE / LONGITUDE / DATUM: confira o par de coordenadas e o datum.')
+ if(campos.dataOcorrencia&&n.aberturas.some(a=>a.ninhoId===o.ninhoId&&[a.dataEclosao,a.dataAbertura].some(d=>d!==null&&d<campos.dataOcorrencia!)))throw new Error('DATA_OCORR: a data está depois da eclosão ou abertura existente. Confira as datas antes de salvar.')
+ const antes={ocorrencia:structuredClone(o),ninho:ninho?structuredClone(ninho):null}
+ const corrigida={...o,...structuredClone(campos),id:o.id,ninhoId:o.ninhoId,projetoId:o.projetoId,responsavelId:o.responsavelId,criadoPor:o.criadoPor,criadoEm:o.criadoEm,versao:o.versao+1,atualizadoPor:m.usuario,atualizadoEm:m.instante}
+ validarOcorrenciaEntrada(corrigida,ninho?.situacao??null)
+ n.ocorrencias[n.ocorrencias.indexOf(o)]=corrigida
+ if(ninho){ninho.temporadaId=corrigida.temporadaId;ninho.versao++;ninho.atualizadoPor=m.usuario;ninho.atualizadoEm=m.instante}
+ return novo(n,m,'cadastro',antes,{ocorrencia:corrigida,ninho:ninho??null,motivo:motivo.trim()})
+}
+
+
+export function excluirNinhoTreino(e:EstadoTreino,id:string,motivo:string,m:AutoriaTreino):EstadoTreino {
+ if(e.contexto)throw new Error('Exclusão oficial exige coordenação, servidor e backups.')
+ const n=structuredClone(e),ninho=n.ninhos.find(x=>x.id===id)
+ if(!ninho||!motivo.trim())throw new Error('Ninho e motivo da exclusão são necessários.')
+ const anterior=fichasDoTreino(n).find(x=>x.ninho.id===id)!
+ n.ninhos=n.ninhos.filter(x=>x.id!==id);n.ocorrencias=n.ocorrencias.filter(x=>x.id!==ninho.ocorrenciaId)
+ n.transferencias=n.transferencias.filter(x=>x.ninhoId!==id);n.aberturas=n.aberturas.filter(x=>x.ninhoId!==id);n.visitas=n.visitas.filter(x=>x.ninhoId!==id)
+ return novo(n,m,'exclusao',anterior,{ninhoId:id,motivo:motivo.trim()})
 }

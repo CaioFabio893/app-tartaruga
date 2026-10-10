@@ -1,7 +1,27 @@
 # Changelog
 
+## 2026-10-10 — P15 cadastro guiado, correção e exclusão individual
+- Cadastro em etapas com nomes oficiais preservados, ajuda condicional, erro por campo e revisão; rascunho local por usuário/projeto/ocorrência e versão-base, limpo após salvar.
+- Edição auditada de cadastro (operação `cadastro`, motivo + pré-imagem + versão) e de transferência existente sem duplicar o manejo; IDs/vínculos/autoria protegidos. Exceção D-031 para corrigir origem/número, sem renumerar nem liberar reservas antigas.
+- Exclusão individual somente coordenação, online, com backup PDF/JSON conferidos e digitação EXCLUIR; não afeta outros ninhos.
+- 234 testes passaram/1 opt-in produção ignorado no emulador; tipos/build passaram; npm audit zero. Nenhuma ficha real alterada. [P15](tasks/P15-cadastro-guiado.md).
+
 ## 2026-10-05 — P14 capturas para portfólio
 - Quatro capturas em proporção original e enquadramentos menores, com dados fictícios; README usa JPEG. PNG antigos preservados. Nenhum código/regra/dado oficial alterado. [P14](tasks/P14-imagens-portfolio.md).
+
+## 2026-10-03 — P13 limpar ninhos para teste
+- Exclusão administrativa autorizada dos 2 ninhos existentes e 11 documentos vinculados do projeto principal, em commit atômico com pré-condições e recibo.
+- Backups JSON/PDF locais conferidos; verificação Firestore real confirmou zero ninhos/projeções/organizações e ausência dos documentos. Acessos/regras/auditorias/reservas/ocorrência sem ninho preservados. [P13](tasks/P13-limpar-ninhos-teste.md).
+
+## 2026-10-03 — P12 marés dentro do app
+- Consulta direta Recife 2026: hoje/próxima maré, cartões alta/baixa com hora/altura, navegação diária e ano inteiro por mês recolhido; poucos controles, sem sair do aplicativo.
+- PDF CHM original preservado e extração reproduzível: 365 dias/1.411 eventos, fonte/hash e comparação integral. Tabela incluída no cache da interface; edição futura exige nova conferência/incorporação.
+- 196 testes passaram/23 ignorados sem emulador; tipos/build passaram; fluxo e tela celular local conferidos sem overflow. Hosting publicado, raiz/bundle/service worker HTTP confirmados. [P12](tasks/P12-mares-no-app.md).
+
+## 2026-10-03 — P11 transferência opcional e marés
+- Cadastro explicita manejo sem transferência (I) e campos condicionais T/P; transferência posterior preservada.
+- Área Marés com acesso externo às tábuas oficiais anuais 2026 do CHM e orientações Recife/Suape; PDF guardado manualmente pode ser consultado offline.
+- 192 testes passaram/23 ignorados sem emulador; tipos/build passaram. Cadastro fictício e área conferidos no navegador local. Hosting publicado e HTTP 200 do bundle confirmado; fichas/regras reais preservadas. [P11](tasks/P11-transferencia-mares.md).
 
 ## 2026-10-03 — P10 apresentação para recrutadores
 - README reestruturado com visão geral, telas, destaques técnicos, diagramas Mermaid, stack, execução, testes, segurança e custo; conteúdo interno preservado por resumo + link. Nenhum código/regra/dado alterado.

@@ -34,7 +34,7 @@ export function prepararGravacao(base:EstadoTreino,proximo:EstadoTreino) {
     for(const d of depois) {
       const anterior=antes.find(a=>a.id===d.id);if(JSON.stringify(d)===JSON.stringify(anterior))continue
       if(d.projetoId!==c.projetoId||d.atualizadoPor!==c.usuario||d.versao!==(anterior?.versao??0)+1)throw new Error('Autoria ou versão inválida.')
-      if(nome==='ocorrencias'&&anterior && 'localOrigem' in d && 'localOrigem' in anterior && JSON.stringify(d.localOrigem)!==JSON.stringify(anterior.localOrigem))throw new Error('Localização original é imutável.')
+      if(novas[0]!.tipo!=='cadastro'&&nome==='ocorrencias'&&anterior && 'localOrigem' in d && 'localOrigem' in anterior && JSON.stringify(d.localOrigem)!==JSON.stringify(anterior.localOrigem))throw new Error('Localização original é imutável.')
       // União correlacionada de listas/mapeadores, validada pelo discriminador acima.
       const dados=(mapear as (v:typeof d)=>DocumentData)(d)
       if(nome==='ninhos'&&!anterior)dados.transferencia_inicial_id=proximo.transferencias.find(t=>t.ninhoId===d.id)?.id??null
@@ -60,15 +60,17 @@ export function prepararGravacao(base:EstadoTreino,proximo:EstadoTreino) {
   }
 
   const reservas:{caminho:string;dados:DocumentData}[]=[]
-  for(const a of alteracoes.filter(x=>x.anterior===null||x.caminho.split('/')[2]==='ocorrencias'&&x.anterior.numero_registro===null&&x.dados.numero_registro!==null)) {
+  for(const a of alteracoes.filter(x=>x.anterior===null||x.caminho.split('/')[2]==='ocorrencias'&&x.dados.numero_registro!==null&&(x.anterior.numero_registro!==x.dados.numero_registro||x.anterior.temporada_id!==x.dados.temporada_id)||x.caminho.includes('/transferencias/')&&(x.anterior.numero_ninho_cercado!==x.dados.numero_ninho_cercado||x.anterior.cercado_id!==x.dados.cercado_id))) {
     const d=a.dados,tipo=a.caminho.split('/')[2]==='ocorrencias'?'N_REGISTRO':a.caminho.includes('/transferencias/') && d.destino==='CERCADO'?'N_NINHO':null
     const numero=tipo==='N_REGISTRO'?d.numero_registro:tipo==='N_NINHO'?d.numero_ninho_cercado:null
     if(numero==null)continue
     const escopo=tipo==='N_REGISTRO'?d.temporada_id??'-':d.cercado_id
-    if(typeof numero!=='string'||!numero.trim()||/[/#\\]/.test(numero)||typeof escopo!=='string'||/[/#\\]/.test(escopo))throw new Error('Número ou escopo de reserva inválido. Preserve o número atribuído pela coordenação.')
+    if(typeof numero!=='string'||!numero.trim()||/[/#\\]/.test(numero)||typeof escopo!=='string'||/[/#\\]/.test(escopo))throw new Error(tipo+': Número ou escopo de reserva inválido. Preserve o número atribuído pela coordenação.')
     reservas.push({caminho:`${raiz}/reservas/${tipo}:${escopo}/numeros/${numero}`,dados:{projeto_id:c.projetoId,tipo_numero:tipo,escopo,numero,documento_alvo:a.caminho,operacao_id:operationId,criado_em:d.criado_em,ocorrencia_id:tipo==='N_REGISTRO'?d.id:null,ninho_id:tipo==='N_NINHO'?d.ninho_id:null,transferencia_id:tipo==='N_NINHO'?d.id:null}})
   }
-  return {operationId,tipo:novas[0]!.tipo,referenciaId:alteracoes.find(a=>a.caminho.includes('/'+(['ocorrencia','animal'].includes(novas[0]!.tipo)?'ocorrencias':novas[0]!.tipo==='transferencia'?'transferencias':novas[0]!.tipo==='abertura'?'aberturas':'visitas')+'/'))!.dados.id as string,alteracoes,projecoes,reservas,raiz,autor:c.usuario,baseRevisao:c.revisaoServidor}
+  const motivo=(novas[0]!.payload as {motivo?:string}).motivo?.trim()
+  if(novas[0]!.tipo==='cadastro'&&!motivo)throw new Error('Motivo da correção obrigatório.')
+  return {motivo,operationId,tipo:novas[0]!.tipo,referenciaId:alteracoes.find(a=>a.caminho.includes('/'+(['ocorrencia','animal','cadastro'].includes(novas[0]!.tipo)?'ocorrencias':novas[0]!.tipo==='transferencia'?'transferencias':novas[0]!.tipo==='abertura'?'aberturas':'visitas')+'/'))!.dados.id as string,alteracoes,projecoes,reservas,raiz,autor:c.usuario,baseRevisao:c.revisaoServidor}
 }
 export async function gravarNuvem(base:EstadoTreino,proximo:EstadoTreino,db:Firestore=obterBanco()):Promise<void> {
   const plano=prepararGravacao(base,proximo);const projeto=doc(db,plano.raiz),operacao=doc(db,`${plano.raiz}/operacoes/${plano.operationId}`)
@@ -80,11 +82,11 @@ export async function gravarNuvem(base:EstadoTreino,proximo:EstadoTreino,db:Fire
     const extras=[...plano.projecoes,...plano.reservas]
     const existentes=await Promise.all(plano.alteracoes.map(a=>tx.get(doc(db,a.caminho))))
     const extrasAntes=await Promise.all(extras.map(a=>tx.get(doc(db,a.caminho))))
-    for(let i=plano.projecoes.length;i<extrasAntes.length;i++)if(extrasAntes[i]!.exists())throw new Error('Número já reservado para outro registro. Nenhum dado foi substituído.')
+    for(let i=plano.projecoes.length;i<extrasAntes.length;i++)if(extrasAntes[i]!.exists()&&extrasAntes[i]!.data()?.documento_alvo!==extras[i]!.dados.documento_alvo)throw new Error(String(extras[i]!.dados.tipo_numero)+': Número já reservado para outro registro. Nenhum dado foi substituído.')
     existentes.forEach((s,i)=>{if((s.data()?.versao??null)!==(plano.alteracoes[i]!.anterior?.versao??null))throw new Error('Versão do registro mudou. Rascunho preservado.')})
-    tx.set(operacao,{id:plano.operationId,projeto_id:base.contexto!.projetoId,autor:plano.autor,tipo:plano.tipo,referencia_id:plano.referenciaId,revisao:plano.baseRevisao+1,conteudo:hash,caminhos:[...plano.alteracoes,...extras].map(a=>a.caminho),anteriores:Object.fromEntries([...existentes.map((s,i)=>[plano.alteracoes[i]!.caminho,s.data()??null]),...extrasAntes.map((s,i)=>[extras[i]!.caminho,s.data()??null])]),criado_em:new Date().toISOString(),confirmado_em:serverTimestamp()})
+    tx.set(operacao,{...(plano.motivo?{motivo:plano.motivo}:{}),id:plano.operationId,projeto_id:base.contexto!.projetoId,autor:plano.autor,tipo:plano.tipo,referencia_id:plano.referenciaId,revisao:plano.baseRevisao+1,conteudo:hash,caminhos:[...plano.alteracoes,...extras].map(a=>a.caminho),anteriores:Object.fromEntries([...existentes.map((s,i)=>[plano.alteracoes[i]!.caminho,s.data()??null]),...extrasAntes.map((s,i)=>[extras[i]!.caminho,s.data()??null])]),criado_em:new Date().toISOString(),confirmado_em:serverTimestamp()})
     plano.alteracoes.forEach((a,i)=>tx.set(doc(db,a.caminho),a.caminho.split('/').length===4&&a.caminho.includes('/ninhos/')&&existentes[i]!.exists()?{...a.dados,transferencia_inicial_id:existentes[i]!.data()!.transferencia_inicial_id}:a.dados))
-    extras.forEach(a=>tx.set(doc(db,a.caminho),a.dados))
+    extras.forEach((a,i)=>{if(i<plano.projecoes.length||!extrasAntes[i]!.exists())tx.set(doc(db,a.caminho),a.dados)})
     tx.update(projeto,{revisao_dados:plano.baseRevisao+1,ultima_operacao:plano.operationId})
   })
 }

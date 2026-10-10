@@ -20,6 +20,7 @@ Os papéis vêm do registro de membro no servidor. O cliente **não** se autoatr
   (visitas), eclosão e abertura.
 - Captura de GPS com precisão; digitação alternativa; lista equivalente ao mapa.
 - Transferências com histórico; localização original imutável.
+- Consulta de marés dentro do aplicativo: tábua anual CHM do Porto do Recife, 2026, com hoje/próxima maré, cartões de horários e alturas, navegação diária e consulta por mês. Incluída no cache da interface; edição futura exige atualização. Sem cálculo próprio de previsão, integração paga ou dependência para cadastrar ninhos.
 - Visitas com eventos.
 - Eclosão e abertura com os campos do manual e cálculos derivados.
 - Relatórios por período e critério, com PDF gerado no cliente e exportação JSON/CSV.
@@ -38,7 +39,7 @@ Motivo: plano **Spark** e uso por projeto social em praia, com equipe pequena e 
 1. Entrar com e-mail e senha; o app descobre em quais projetos o usuário é membro.
 2. Escolher projeto e temporada.
 3. Registrar a ocorrência na praia (`CD`, `ML`, `SD`, `ND`, `PI`) e capturar o GPS.
-4. Se for `CD`, a ficha do ninho abre e pede manejo, tempor `I`/`T`/`P` e destino.
+4. Se for `CD`, informar manejo: sem transferência (I), transferência para cercado (T) ou praia (P). Destino/dados de transferência aparecem apenas em T/P; transferência posterior é registrada na ficha.
 5. Ao longo do acompanhamento, registrar visitas.
 6. Registrar eclosão e abertura; os cálculos aparecem preenchidos, com explicação quando vazios.
 7. Gerar o relatório do período e baixar o PDF ou exportar JSON/CSV.

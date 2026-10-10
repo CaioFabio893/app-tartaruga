@@ -1,6 +1,14 @@
-# Status — 03/10/2026
+# Status — 10/10/2026
+
+P15 concluída, dono Codex: cadastro por etapas, edição auditada e exclusão individual. 234 testes passaram/1 opt-in produção ignorado no emulador; tipos/build passaram; npm audit zero. Nenhuma ficha real alterada. [Entrega/limites](tasks/P15-cadastro-guiado.md).
 
 P14 concluída (05/10/2026), dono Codex: quatro capturas proporcionais publicadas no README/GitHub e postagem LinkedIn com texto aprovado e quatro imagens; dados fictícios. Commit de imagens 8f6881f enviado/conferido no remoto. [Tarefa](tasks/P14-imagens-portfolio.md).
+
+P13 concluída, dono Codex: 2 ninhos/11 documentos vinculados apagados a pedido do usuário para teste. Backups JSON/PDF locais conferidos, commit administrativo atômico com pré-condições/recibo; Firestore real confirmou zero ninhos/projeções/organizações e 404 dos 11 documentos. Acessos/regras/auditorias/reservas e 1 ocorrência sem ninho preservados. [Evidências/limites](tasks/P13-limpar-ninhos-teste.md). Aparelhos precisam conferir dados online; rascunhos locais não foram apagados.
+
+P12 concluída e publicada, dono Codex: marés de Recife dentro do app, 365 dias/1.411 eventos da tábua oficial 2026; hoje/próxima maré, cartões grandes e consulta mensal recolhida. 196 testes passaram/23 ignorados sem emulador; tipos/build passaram, navegador local e viewport celular sem overflow conferidos. Hosting/raiz/bundle/cache HTTP confirmados. [Entrega/limites](tasks/P12-mares-no-app.md). Edição futura exige atualização; offline físico/aparelho real não testados.
+
+P11 concluída e publicada, dono Codex: cadastro explicita “Sem transferência”, destino apenas em T/P; nova área Marés acessa tábuas anuais oficiais com Recife/Suape. 192 testes passaram/23 ignorados sem emulador, tipos/build passaram; cadastro fictício sem transferência e área Marés conferidos no navegador local. Hosting/bundles HTTP 200. Nenhuma ficha real alterada. [Entrega e limites](tasks/P11-transferencia-mares.md).
 
 P10 concluída, dono OpenCode: repositório apresentável para recrutadores. README reestruturado (visão geral, telas, destaques técnicos, diagramas, testes, segurança), licença MIT, CI do GitHub Actions e screenshots fictícias do protótipo; nenhum código/regra/dado alterado. Validação sem emulador: 191 passaram/23 ignorados; tipos/build OK. [Entrega](tasks/P10-portfolio-readme.md).
 
@@ -32,6 +40,6 @@ P05: estimativa documental de capacidade concluída; amostra atual ≈266 KiB in
 
 ## Próximo passo e limites
 
-P03/P04/P07/P08 concluídas e publicadas. Fichas antigas aguardam ano/número explícitos em Sem ano definido; previsão depende da equipe e quota de medição manual. Conta Adriano campo segue sem retenção administrativa (D-025). Próximo passo: equipe conferir o layout do PDF e testar GPS/offline no aparelho de campo. Manter perguntas científicas em [DECISIONS.md](DECISIONS.md)/[DOMAIN_RULES.md](DOMAIN_RULES.md): listas/unidades/fuso, numeração e reabertura. Nova reabertura distinta bloqueada até protocolo; complementos da abertura existente preservam histórico na auditoria. Layout PDF proposto aguarda validação da coordenação; GPS físico/instalação em aparelhos não testados. Spark sujeito às cotas, não ilimitado.
+P03/P04/P07/P08/P15 concluídas. Fichas antigas aguardam ano/número explícitos em Sem ano definido; previsão depende da equipe e quota de medição manual. Conta Adriano campo segue sem retenção administrativa (D-025). Próximo passo: equipe conferir o layout do PDF e testar GPS/offline no aparelho de campo; coordenação validar a exclusão individual em produção (backup conferido fora do app). Manter perguntas científicas em [DECISIONS.md](DECISIONS.md)/[DOMAIN_RULES.md](DOMAIN_RULES.md): listas/unidades/fuso, numeração e reabertura. Nova reabertura distinta bloqueada até protocolo; complementos da abertura existente preservam histórico na auditoria. Layout PDF proposto aguarda validação da coordenação; GPS físico/instalação em aparelhos não testados. Spark sujeito às cotas, não ilimitado.
 
 Continuação: [handoffs/ATUAL.md](handoffs/ATUAL.md); escopo/dono: [BACKLOG.md](BACKLOG.md).

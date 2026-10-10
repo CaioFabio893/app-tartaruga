@@ -88,7 +88,7 @@ primeiro/último filhote é acréscimo do projeto (`hora_primeiro_filhote`, `hor
 ## 4. Localização, transferência e imutabilidade
 
 4.1 A localização original é **imutável**: praia, km, bairro, referência, latitude, longitude, datum e fonte
-do GPS nunca são sobrescritos por uma transferência.
+do GPS nunca são sobrescritos por uma transferência. Erro de digitação pode ser corrigido pela operação auditada de cadastro, com motivo e pré-imagem, por autorização explícita do usuário em [D-031](DECISIONS.md#d-031--correção-explícita-do-cadastro-09102026). Não usar correção para representar mudança física de local.
 
 4.2 A posição atual é **derivada** do histórico: última transferência aceita, quando existir; caso contrário,
 a localização original.

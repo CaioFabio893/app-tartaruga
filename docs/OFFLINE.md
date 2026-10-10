@@ -14,6 +14,8 @@ Treino em `src/data/treino.ts`: IndexedDB nativo, operações/revisões auditada
 
 SW de produção cacheia somente assets estáticos próprios, inclusive módulos PDF. Navegação tem fallback offline após cache instalado; requisições Firebase/tokens e outras origens não são cacheados. Atualização fica aguardando, sem skipWaiting automático; fechar abas quando não houver rascunho. Instalação física ainda não testada.
 
+Rascunho de cadastro P15: localStorage por usuário/projeto/ocorrência e versão-base. Retoma valores apenas na mesma versão; conteúdo corrompido/incompatível é ignorado sem apagar a chave. Não é registro cadastrado nem pendência sincronizada. Limpa após salvar com sucesso. É local ao navegador, não acompanha outro aparelho, não integra a cópia JSON de registros e permanece se a sessão terminar; evite aparelho compartilhado. Falha de armazenamento é indicada na tela.
+
 ## Implementação remota P03
 
 `src/data/pendencias.ts` usa IndexedDB separado do treino, chave usuário+projeto. Guarda base confirmada e uma operação pendente (cadastro composto pode ter dois eventos locais), com IDs estáveis e versões. Não permite nova alteração antes de resolver a pendência. `src/app/nuvem.ts` grava a pendência **antes** do envio e só limpa após transação confirmada e nova leitura de servidor.

@@ -111,7 +111,7 @@ Um lançamento de campo. Existe **sempre** que houve atividade, mesmo sem desova
 | `hora_ocorrencia` | `string \| null` | HORA_OCORR — só com flagrante (p. 1) |
 | `noite_referencia` | `string \| null` | data de referência de campo (`DOMAIN_RULES` §3.2) |
 | `flagrante` | `boolean \| null` | (projeto) — **resposta explícita**, ver §4.5.1 |
-| `local_origem` | `Localizacao` | aninhado, imutável |
+| `local_origem` | `Localizacao` | aninhado; imutável para manejo, correção auditada D-031 |
 | `marcas_encontradas`, `marcas_colocadas`, `marcas_retiradas` | `string \| null` | (p. 2) |
 | `especie_codigo` | `'CC' \| 'EI' \| 'LO' \| 'CM' \| 'DC' \| 'NI' \| null` | ESPECIE (p. 2) |
 | `comprimento_casco`, `largura_casco` | `number \| null` | (p. 2) — unidade indefinida, DÚVIDA 01 |
@@ -152,11 +152,10 @@ Existe apenas para `CD`. Não guarda cópia de nenhum campo da ocorrência.
 
 Leitura da localização original e do número de registro: `ninho.ocorrencia_id` → `Ocorrencia`
 (`local_origem`, `numero_registro`). A imutabilidade da origem (`DOMAIN_RULES` §4.1) vale para a ocorrência:
-`local_origem` não é editável depois de criado; correção exige nova transferência ou ajuste administrativo
-auditado, nunca sobrescrita silenciosa.
+`local_origem` só admite correção explícita auditada de cadastro com motivo/pré-imagem (D-031); mudança física exige transferência própria.
 
 ### 4.7 Transferencia
-Subcoleção do ninho. Registro próprio, append-only. **Dona** de `TEMP_TRANSF`, `N_NINHO` e `OVOS_TRANS`.
+Subcoleção do ninho. Registro próprio; correção mantém ID/sequência, pré-imagem e motivo (D-031), sem duplicar o manejo. **Dona** de `TEMP_TRANSF`, `N_NINHO` e `OVOS_TRANS`.
 
 `id`, `projeto_id`, `ninho_id`, `destino` (`'CERCADO' | 'PRAIA'`), `cercado_id` (`string | null`, quando
 `destino = 'CERCADO'`; `null` enquanto o cercado não estiver cadastrado — escopo da reserva de `N_NINHO`, §6),
@@ -254,7 +253,7 @@ global offline nem garante oficialidade de unicidade antes da sincronização.
 
 P03 usa reserva determinística `projetos/{p}/reservas/{tipo}:{escopo}/numeros/{numero}`. Tipo N_REGISTRO com escopo temporada ou '-' quando ausente; tipo N_NINHO com escopo cercado. Texto conserva zeros, não aceita separadores de caminho. Regras ligam a reserva ao documento de origem, número/escopo e operação. Reserva é imutável e atômica com origem/projeção/auditoria.
 
-Escopo continua **provisório**, pendente da coordenação; não é garantia oficial de controle geral. Nenhum número é gerado automaticamente. Offline pode registrar o número recebido, mas ele é apenas pendente, ainda não reservado. Conflito não escolhe substituto. Primeiro N_REGISTRO pode ser atribuído em complemento auditado; número atribuído não é renumerado. Contrato puro R02 de reserva-v1 fica como referência histórica; o caminho SDK ativo está em src/data/nuvem.ts, D-019/D-021.
+Escopo continua **provisório**, pendente da coordenação; não é garantia oficial de controle geral. Nenhum número é gerado automaticamente. Offline pode registrar o número recebido, mas ele é apenas pendente, ainda não reservado. Conflito não escolhe substituto. Primeiro N_REGISTRO pode ser atribuído em complemento auditado; correção explícita de número incorreto segue D-031 e preserva todas as reservas antigas, sem renumerar a sequência oficial. Contrato puro R02 de reserva-v1 fica como referência histórica; o caminho SDK ativo está em src/data/nuvem.ts, D-019/D-021.
 
 ## 7. Consultas de relatório e índices
 

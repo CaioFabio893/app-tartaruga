@@ -7,14 +7,16 @@ import {montarRelatorio,type Relatorio} from '../report/relatorio'
 import {aplicarAno} from '../domain/gestao'
 import {paraDia} from '../domain/datas'
 
-export interface SelecaoExclusao {ano:string;inicio:string;fim:string;modo:'ano'|'periodo'}
+export interface SelecaoExclusao {ano:string;inicio:string;fim:string;modo:'ano'|'periodo'|'ninho';ninhoId?:string}
 export interface PlanoExclusao {projeto:string;revisao:number;revisaoGestao:number;relatorio:Relatorio;selecao:SelecaoExclusao;grupos:{id:string;documentos:{caminho:string;dados:DocumentData}[]}[]}
 export async function prepararExclusao(c:Contexto,s:SelecaoExclusao,db:Firestore=obterBanco()):Promise<PlanoExclusao>{
  if(c.papel!=='coordenacao')throw new Error('Exclusão restrita à coordenação.')
  if(s.modo==='ano'&&!/^\d{4}$/.test(s.ano))throw new Error('Escolha um ano definido para excluir.')
  if(s.modo==='periodo'&&(paraDia(s.inicio)===null||paraDia(s.fim)===null||s.inicio>s.fim))throw new Error('Período inválido.')
+ if(s.modo==='ninho'&&!s.ninhoId?.trim())throw new Error('Escolha o ninho a excluir.')
  const e=await carregarNuvem(c,db),g=await carregarGestaoNuvem(c,db)
- const r=aplicarAno(montarRelatorio({projetoNome:c.nome,dados:fichasDoTreino(e),consulta:{projetoId:c.projetoId,todos:s.modo==='ano',criterio:'OCORR',inicio:s.inicio,fim:s.fim},fonte:{demonstracao:false,online:true,sincronizacaoConfirmada:true,conjuntoCompleto:true},geradoEm:new Date().toISOString()}),g.ninhos,s.modo==='ano'?s.ano:'todos',true)
+ const r=aplicarAno(montarRelatorio({projetoNome:c.nome,dados:fichasDoTreino(e),consulta:{projetoId:c.projetoId,todos:s.modo!=='periodo',criterio:'OCORR',inicio:s.inicio,fim:s.fim},fonte:{demonstracao:false,online:true,sincronizacaoConfirmada:true,conjuntoCompleto:true},geradoEm:new Date().toISOString()}),g.ninhos,s.modo==='ano'?s.ano:'todos',true)
+ if(s.modo==='ninho'){r.registros=r.registros.filter(n=>n.ficha.ninho.id===s.ninhoId);if(r.registros.length!==1)throw new Error('Ninho não encontrado. Confira os dados no servidor.')}
  const grupos:PlanoExclusao['grupos']=[],raiz=`projetos/${c.projetoId}`
  for(const n of r.registros){const id=n.ficha.ninho.id,caminhos=[`${raiz}/ocorrencias/${n.origem.ocorrencia!.id}`,`${raiz}/ninhos/${id}`,`${raiz}/consultas/${id}`,...g.ninhos[id]?[`${raiz}/gestao/${id}`]:[],...n.origem.transferencias.map(t=>`${raiz}/ninhos/${id}/transferencias/${t.id}`),...n.origem.aberturas.map(a=>`${raiz}/ninhos/${id}/aberturas/${a.id}`),...(n.origem.visitas??[]).map(v=>`${raiz}/ninhos/${id}/visitas/${v.id}`)]
   if(caminhos.length>200)throw new Error('Um ninho excede 200 documentos. Exclusão bloqueada; solicite revisão do procedimento.')

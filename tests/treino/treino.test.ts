@@ -6,6 +6,19 @@ import { montarFichaNinho } from '../../src/domain/agregado'
 
 function autoria() {let i=0;return {usuario:'teste-local',instante:'2026-10-02T18:00:00Z',novoId:()=>`novo-${++i}`}}
 function ocorrencia() {const o=structuredClone(criarTreino().ocorrencias[0]!);return {...o,numeroRegistro:null,dataOcorrencia:null,noiteReferencia:null}}
+it('cadastra sem transferência e permite transferir posteriormente sem mudar a origem',()=>{
+  const e=criarTreino(),o=ocorrencia()
+  const cadastrado=registrarOcorrencia(e,o,'I',autoria())
+  const ninho=cadastrado.ninhos.at(-1)!
+  expect(cadastrado.transferencias).toHaveLength(e.transferencias.length)
+  const ficha=montarFichaNinho(fichasDoTreino(cadastrado).find(f=>f.ninho.id===ninho.id)!)
+  expect(ficha.posicaoAtual.local).toEqual(o.localOrigem)
+  expect(ficha.ovosTransferencia).toBeNull()
+  const depois=registrarTransferencia(cadastrado,{...e.transferencias[0]!,ninhoId:ninho.id}, {...autoria(),novoId:()=> 'transferencia-posterior-p11'})
+  expect(depois.ninhos.at(-1)!.situacao).toBe('P')
+  expect(depois.ocorrencias.at(-1)!.localOrigem).toEqual(o.localOrigem)
+  expect(depois.transferencias).toHaveLength(e.transferencias.length+1)
+})
 it('CD cria ninho, outras ocorrências não; insumo nunca muda',()=>{
   const e=criarTreino(),antes=JSON.stringify(e)
   expect(registrarOcorrencia(e,ocorrencia(),'I',autoria()).ninhos.length).toBe(e.ninhos.length+1)

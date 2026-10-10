@@ -1,7 +1,14 @@
 # Decisões
 
+
+## D-031 — correção explícita do cadastro (09/10/2026)
+Usuário autorizou edição posterior de todos os dados informados para corrigir erros. Exceção ao bloqueio anterior da localização original e renumeração: operação específica `cadastro`, motivo obrigatório, pré-imagem imutável com valores anteriores e versão/revisão. Manejo nunca altera a origem; transferências permanecem registros próprios. Números corrigidos exigem nova reserva; reservas anteriores não são liberadas. IDs/vínculos e derivados não são editados livremente. Alterar CD para ocorrência sem desova com ninho vinculado exige excluir o cadastro incorreto pela coordenação e registrar a ocorrência correta; jamais manter ninho sem desova nem apagar seus vínculos silenciosamente.
+
 ## D-030 — capturas de portfólio (05/10/2026)
 Usuário pediu substituir a apresentação das telas no GitHub por novas capturas sem distorção. README passa a apontar para JPEG em viewport; PNG anteriores preservados como histórico, evitando apagar trabalho existente. Dados somente fictícios em modo treino.
+
+## D-029 — limpeza administrativa para teste (03/10/2026)
+Usuário autorizou explicitamente apagar todos os ninhos cadastrados do projeto principal para entrega a um testador. Procedimento administrativo com conta proprietária já autorizada, sem promover a conta campo e sem relaxar regras. Preservar cópias JSON/PDF locais antes de excluir fontes/vínculos/históricos/projeções/organização; guardar recibo e incrementar revisões com pré-condições de atualização. Auditoria/reservas/acessos e ocorrências sem ninho permanecem. Não apagar dados locais de outros aparelhos nem projetos técnicos. Esta autorização específica não cria permissão de exclusão para o usuário campo no aplicativo. Não reiniciar números oficiais, pois o pedido é limpeza dos ninhos, não renumeração.
 
 ## D-011 - Revisão Codex e fonte textual
 - **Data**: 02/10/2026.
@@ -173,3 +180,10 @@ DÚVIDA para responsável: quem deve ter autorização administrativa para reten
 
 ## D-026 — identificação visível pelo registro (03/10/2026)
 Usuário pediu N_REGISTRO no lugar do código NINHO-UUID na identificação. Esse pedido atual prevalece sobre a prioridade do número anual no rótulo P08: lista/ficha/mapa/alertas/PDF compartilham o rótulo Ninho + registro textual, preservando zeros. Se não informado, número anual e depois código técnico são alternativas já existentes. Não muda UUID, número anual, N_REGISTRO ou número de cercado persistidos; Excel permanece conforme P08.
+
+## D-027 — transferência opcional e marés P11 (03/10/2026)
+Usuário pediu cadastro sem transferência e consulta anual de marés para Pernambuco, preferencialmente Recife. Transferência já era condicional em T/P: interface agora explicita “Sem transferência — in situ (I)” e orienta registro posterior. Conservação continua obrigatória em CD conforme DOMAIN_RULES §2.5; não presumir I para resposta ausente. Destino continua obrigatório se a equipe declara transferência.
+Marés: área própria com acesso externo à edição 2026 do CHM, instruções para Porto do Recife e Suape e acesso a novas edições. Fonte consultada: https://www.marinha.mil.br/chm/tabuas-de-mare-6 . Não extrapolar estação para todo litoral nem inventar horários/alturas. Sem scraping, cálculo, cache automático ou cobrança. PDF pode ser guardado manualmente para consulta offline; links precisam de conexão. Tentativa HTTP direta encontrou desafio anti-bot; consulta web confirmou a lista, mas download do PDF não foi validado.
+
+## D-028 — consulta integrada e simples de marés P12 (03/10/2026)
+Pedido atual substitui a consulta externa P11: usuário precisa de baixo esforço de navegação. Recife selecionado previamente. Substituído o conteúdo de instruções por cartões diários com horários/alturas, próxima maré, hoje/anterior/próximo e consulta anual recolhida. Dados factuais extraídos do PDF oficial CHM Recife 2026 (fonte/hash/reprodução em `references/mares/README.md`), sem usar tabelas de blogs. Original preservado; nenhuma previsão interpolada ou calculada. Rótulos alta/baixa são apresentação v1 por comparação de extremos vizinhos publicados; horas/alturas originais preservadas. Próximo evento usa relógio do aparelho e UTC−03:00; não informa nível atual nem risco para ninhos. Cache do bundle contém a tabela, sem Firebase/serviço adicional. Sem promessa de atualizar automaticamente outra edição ou cobrir todo Pernambuco. Suape não incorporado nesta consulta focada em Recife.
