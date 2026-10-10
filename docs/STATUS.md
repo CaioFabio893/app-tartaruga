@@ -1,6 +1,6 @@
 # Status — 10/10/2026
 
-P15 concluída, dono Codex: cadastro por etapas, edição auditada e exclusão individual. 234 testes passaram/1 opt-in produção ignorado no emulador; tipos/build passaram; npm audit zero. Nenhuma ficha real alterada. [Entrega/limites](tasks/P15-cadastro-guiado.md).
+P15 concluída e publicada, dono Codex: cadastro por etapas, edição auditada e exclusão individual. 234 testes passaram/1 opt-in produção ignorado no emulador; tipos/build passaram; npm audit zero. Regras/Hosting publicados e HTTP 200 confirmados; nenhuma ficha real alterada. [Entrega/limites](tasks/P15-cadastro-guiado.md).
 
 P14 concluída (05/10/2026), dono Codex: quatro capturas proporcionais publicadas no README/GitHub e postagem LinkedIn com texto aprovado e quatro imagens; dados fictícios. Commit de imagens 8f6881f enviado/conferido no remoto. [Tarefa](tasks/P14-imagens-portfolio.md).
 
